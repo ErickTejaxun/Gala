@@ -22,9 +22,7 @@ void yyerror(const char* s){         /*    llamada por cada error sintactico de 
       //fprintf (stderr, "%s\n", s);
 } 
 
-
 %}
-
 
 %error-verbose
 
@@ -43,14 +41,13 @@ void yyerror(const char* s){         /*    llamada por cada error sintactico de 
 %token ESCRIBIR DEFINICIONES CONFIGURACION OBSTACULOS EJEMPLOS
 /*Palabras reservadas para tipos*/
 %token TENTERO TREAL TPOSICION TCADENA
-
+/*Palabras reservadas para dimensiones*/
 %token DIMENSION ENTRADA SALIDA PAUSA
-
+/*Palabras reservadas osbtaculos.*/
 %token OBSTACULO NORTE SUR ESTE OESTE
-
 /*Bloque ejemplos*/
 %token EJEMPLO FINEJEMPLO
-
+/*Ciclos.*/
 %token REPITE FINREPITE SI ENTONCES FINSI SINO
 
 %token <valor_entero> NUMERO
@@ -92,10 +89,12 @@ definiciones:
 ldefinicion: 
        ldefinicion declaracion
       |ldefinicion constante
-      |ldefinicion escribir
+      |ldefinicion escribir separador
+      |ldefinicion error separador {yyerrok;}
       |constante 
       |declaracion 
-      |escribir
+      |escribir separador
+      |error separador {yyerrok;}
 ;
 
 separador: 
@@ -134,11 +133,13 @@ lconfiguracion:
       | lconfiguracion salida
       | lconfiguracion pausa
       | lconfiguracion escribir
+      | lconfiguracion error separador {yyerrok; }
       | dimension 
       | entrada
       | salida
       | pausa
       | escribir
+      | error separador {yyerrok; }
 ;
 
 
@@ -182,6 +183,7 @@ obstaculo:
       |escribir separador
       |repetir separador
       |si separador
+      | error separador {yyerrok; }
 ;
 
 
@@ -192,7 +194,9 @@ ejemplos:
 
 lejemplos:
        lejemplos ejemplo
+      |lejemplos error separador {yyerrok;}
       |ejemplo 
+      |error {yyerrok;}
 ;
 
 ejemplo:
@@ -217,7 +221,6 @@ si:
       SI expr separador ENTONCES separador bloque %prec SI_SIMPLE FINSI
      |SI expr separador ENTONCES separador bloque SINO separador  bloque FINSI
 ;
-
 
 
 coodernada:
