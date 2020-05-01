@@ -1,0 +1,8 @@
+[Err. Sem.: línea 21] [DEFINICIONES]	La variable/constante con ID: 'b' no está definida.
+[Err. Sem.: línea 23] [DEFINICIONES]	El operador % no se puede usar con datos de tipo real
+[Err. Sem.: línea 34] [CONFIGURACION]	Casilla ENTRADA (1,1) debe estar situada en el borde del tablero.
+[Err. Sem.: línea 35] [CONFIGURACION]	Casilla SALIDA (2,3) debe estar situada en el borde del tablero.
+[Err. Sem.: línea 41] [OBSTACULOS]	No se ha podido colocar el obstáculo absoluto en la posición (8, 8).
+[Err. Sem.: línea 43] [OBSTACULOS]	No se ha podido colocar el obstáculo absoluto en la posición (5, 6).
+[Err. Sem.: línea 45] [OBSTACULOS]	No se ha podido colocar el obstáculo absoluto en la posición (0, 2).
+[Err. Sem.: línea 126] [EJEMPLOS]	No se ha podido realizar el movimiento OESTE 7.

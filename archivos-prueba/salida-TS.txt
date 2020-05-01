@@ -1,0 +1,18 @@
+   TABLA SIMBOLOS: 
+
+   	Pos.	Nombre	CTE?	Tipo		Valor
+	------------------------------------------------
+	0	n	 NO	 entero   	0
+	1	x	 NO	 entero   	-
+	2	y	 NO	 entero   	-
+	3	f	 NO	 real     	-
+	4	cad	 NO	 cadena   	"Soy Ejemplo 3"
+	5	p1	 NO	 posicion 	0,6
+	6	p2	 NO	 posicion 	6,4
+	7	D	 SI	 entero   	7
+	8	INICIO	 SI	 posicion 	5,6
+	9	FIN	 SI	 posicion 	0,2
+	10	P	 SI	 real     	0.4
+	11	MSG_OBS	 SI	 cadena   	"OBSTACULOS"
+
+		=> Ocupación: 12 elementos.
