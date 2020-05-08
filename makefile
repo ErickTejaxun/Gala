@@ -4,7 +4,8 @@ OBJ = sintactico.o lexico.o
 
 gala : $(OBJ)     #segunda fase de la tradicción. Generación del código ejecutable 
 	g++ -o gala $(OBJ)
-	#./expresiones entrada.txt resultados.txt
+	echo "Analizando archivo con errores------------------->" 
+	./gala ./archivos-prueba/GaLa-test-gramatica-03.gdl salida.cpp
 
 sintactico.o : sintactico.c        #primera fase de la traducción del analizador sintáctico
 	g++ -c -o sintactico.o  sintactico.c 

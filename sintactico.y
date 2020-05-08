@@ -14,6 +14,7 @@ extern int n_lineas;
 extern int yylex();
 extern FILE* yyin;
 extern FILE* yyout;
+NodoAST *raiz;
 
 
 //definición de procedimientos auxiliares
@@ -32,7 +33,8 @@ void yyerror(const char* s){         /*    llamada por cada error sintactico de 
       float valor_real;      
       char valor_cadena[100];   
       bool valor_booleano;   
-      simbolo* valor_simbolo;
+      Expresion *expresion;
+      Instruccion *instruccion;
 } 
 
 %start programa;
@@ -59,10 +61,8 @@ void yyerror(const char* s){         /*    llamada por cada error sintactico de 
 %token <valor_booleano> VERDADERO FALSO
 
 
-
-
-
-%type <valor_simbolo> expr
+%type <instruccion> escribir
+%type <expresion> expr
 
 %right '!'
 %left AND OR
@@ -79,8 +79,15 @@ void yyerror(const char* s){         /*    llamada por cada error sintactico de 
 %%
 
 programa: 
-       definiciones configuracion obstaculos ejemplos 
-      |configuracion obstaculos ejemplos 
+        definiciones configuracion obstaculos ejemplos 
+      | separador definiciones configuracion obstaculos ejemplos {/*Produccion para manejar los espacios en blanco al inicio*/}
+      | separador configuracion obstaculos ejemplos              {/*Produccion para manejar los espacios en blanco al inicio*/}
+      | configuracion obstaculos ejemplos 
+      /*Producciones sin apartado de configuración*/
+      | definiciones  obstaculos ejemplos 
+      | separador definiciones  obstaculos ejemplos               {/*Produccion para manejar los espacios en blanco al inicio*/}
+      | separador  obstaculos ejemplos                            {/*Produccion para manejar los espacios en blanco al inicio*/}
+      | obstaculos ejemplos       
       ;
 
 definiciones: 
@@ -230,7 +237,7 @@ coodernada:
 
 
 escribir:
-      ESCRIBIR expr           { ;  }
+      ESCRIBIR expr           {  $$ = new Escribir(n_lineas, n_lineas, $2);  $$->ejecutar(); }
 ;
 
 expr:    NUMERO 		      { ; }
@@ -255,7 +262,7 @@ expr:    NUMERO 		      { ; }
        |'-' expr %prec menos  { ; }
        | '(' expr ')'         { ; }  
        | ID                   { ; }  
-       | CADENA               { ; }       
+       | CADENA               { string cad($1); $$ = new Literal(n_lineas, n_lineas,cad );}
        ;
 %%
 
@@ -273,6 +280,17 @@ int main(int argc, char *argv[])
             n_lineas = 1;
             cout<<"--------------------------------------------------------------------"<<endl;
             yyparse();
+            if(raiz == NULL)
+            {
+                  printf("Nada que ejecutar\n");                  
+            }
+            else
+            {
+                  if(raiz->esInstruccion())
+                  {
+                        raiz->ejecutar();
+                  }
+            }
             cout<<"--------------------------------------------------------------------"<<endl;
             //string dataTabla = tablaSimbolo->getCadenaData();            
             //fputs(dataTabla.data(), yyout);

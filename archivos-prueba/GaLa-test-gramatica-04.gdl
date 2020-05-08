@@ -1,0 +1,39 @@
+#
+# TL - Curso 2019/2020
+#
+# Fase inicial del Proyecto GaLa
+#
+# GaLa-test-gramatica-04.gdl
+#
+
+
+# En GaLa tenemos 4 bloques: DEFINICIONES (opcional), CONFIGURACION (opcional), OBSTACULOS y EJEMPLOS
+
+# DEFINICIONES
+# CONFIGURACION
+  
+  # Ambos bloques son opcionales y por tanto pueden no aparecer.
+
+OBSTACULOS
+    
+    sur 4
+    obstaculo
+    este 5
+    obstaculo
+    sur 2
+    obstaculo
+    norte 1
+    obstaculo
+    
+    obstaculo <3,4>
+    obstaculo <7,7>
+
+EJEMPLOS
+
+    ejemplo caso1
+        este 5
+        sur 3
+        este 3
+        sur 6
+        escribir "Final"
+    finejemplo

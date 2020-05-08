@@ -58,7 +58,7 @@ sino                            return SINO;
 finsi                           return FINSI;
 entonces                        return ENTONCES;
 {ident}                         strcpy(yylval.valor_cadena,yytext); return ID;
-{cadena}                        strcpy(yylval.valor_cadena,yytext); return CADENA;
+{cadena}                        strcpy(yylval.valor_cadena,&yytext[1]); yylval.valor_cadena[yyleng-2] = '\0'; return CADENA;
 [\t ]			                ;	
 . 				                return (yytext[0]);
 %%

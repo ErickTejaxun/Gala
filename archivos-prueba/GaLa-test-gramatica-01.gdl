@@ -1,0 +1,106 @@
+#
+# TL - Curso 2019/2020
+#
+# Fase inicial del Proyecto GaLa
+#
+# GaLa-test-gramatica-01.gdl
+#
+
+
+# En GaLa tenemos 4 bloques: DEFINICIONES (opcional), CONFIGURACION (opcional), OBSTACULOS y EJEMPLOS
+
+DEFINICIONES # BLOQUE 1
+
+  # VARIABLES - 4 tipos: entero, real, cadena y posicion
+    
+  # Las variables se definen, como en C, indicando primero el tipo y despues el nombre de las variables definidas   
+    
+    entero e0
+    real r0
+    cadena c0
+    posicion p0
+    
+  # Si hay mas de una deben separase por comas  
+    
+    entero e1,e2,e3
+    real f1,f2,f3
+    cadena c1,c2,c3
+    posicion p1,p2,p3
+
+  # CONSTANTES - Las constantes se definen indicando sólo su valor que ya no podrá ser modificado durante el resto del programa. 
+  #              El tipo de las constantes está implícito en el valor asignado. 
+  #              Sólo se puede definir una constante en cada línea. 
+    
+  # Se pueden declarar de forma literal
+    
+    C1 = 2
+    C2 = 0.75
+    C3 = "Hola mundo"
+    C4 = <2,9>          # Posición: representado mediante dos números enteros separados por una coma y encerrados entre los símbolos < y >.
+    
+    # También es posible utilizar expresiones aritméticas
+    
+    C5 = C1 + 2
+    C6 = C2 - 1.1
+    C7 = <C1,C1-2>
+
+CONFIGURACION # BLOQUE 2
+  
+  # Cada instrucción comienza con una palabra reservada que puede ser escrita utilizando letras mayúsculas o minúsculas
+  # y va seguida de uno o más parámetros
+        
+    DiMeNsIon 8 + C1
+    EnTrada C7
+    SalIda C4
+    PausA C2 - 0.25
+
+OBSTACULOS # BLOQUE 3
+
+  # En este bloque pueden aparecer: asignaciones, direcciones (norte, sur, este, oeste), obstaculos (relativos y absolutos) y escribir mensajes
+    
+  # Asignaciones
+    e0 = C1 + 2
+    f1 = C2 * 2
+    c1 = "Obstaculo"
+    p3 = <2, e0 + 1>
+    
+  # Direcciones (norte, sur, este, oeste) y obstáculo relativo
+    norte C1 - 1
+    sur C1 + 2
+    este 2
+    oeste 3 + 1 - 2
+    obstaculo
+    
+  # Obtáculos absolutos
+    obstaculo <3,4>
+    obstaculo <C1,C1>
+    obstaculo p3
+    
+  # Escribir mensajes
+    escribir "Bloque Obstaculos"
+    escribir c1
+    escribir e0
+    escribir e0 + 2   
+
+EJEMPLOS # BLOQUE 4
+
+  # Tendremos 1 o más ejemplos
+
+    ejemplo caso1
+      # En un ejemplo pueden aparecer: asignaciones, direcciones (norte, sur, este, oeste) y escribir mensajes
+      e1 = e1 + 2
+      norte e1 - 1
+      este C1 + 2
+      sur 1      
+      oeste 1
+      norte 1
+      escribir "Fin"
+    finejemplo
+    
+    ejemplo caso2
+        norte 2
+        este 2
+        sur 1
+        este 4
+        escribir C3
+    finejemplo    
