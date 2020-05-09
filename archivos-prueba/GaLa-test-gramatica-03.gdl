@@ -9,7 +9,14 @@
 # En GaLa tenemos 4 bloques: DEFINICIONES (opcional), CONFIGURACION (opcional), OBSTACULOS y EJEMPLOS
 
 DEFINICIONES
+  escribir "Erick Roberto " + "Tejaxun Xicon" + " Guatemala" +  (10 + 3.33)
+  escribir 10
+  escribir 10.3 + 5 +3.5 + 200
+  escribir 666 +1 + 33
   escribir "hola perros"
+  escribir false
+  escribir "primer frase" + " otra frase"
+  escribir true
   entero a,b
   real c
   cadena d; # Error ; 

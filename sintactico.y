@@ -8,7 +8,7 @@
 #include "simbolo.h"
 #include <stdio.h>
 #include <string.h>
-
+#include <vector>
 using namespace std;
 extern int n_lineas;
 extern int yylex();
@@ -16,10 +16,14 @@ extern FILE* yyin;
 extern FILE* yyout;
 NodoAST *raiz;
 
+vector<Error> listaErrores;
+Entorno global = new Entorno(NULL);
 
 //definición de procedimientos auxiliares
-void yyerror(const char* s){         /*    llamada por cada error sintactico de yacc */
-	cout << "Error sintáctico en línea "<< n_lineas<<": "<< s <<endl;	      
+void yyerror(const char* s)
+{         /*    llamada por cada error sintactico de yacc */
+      listaErrores.push_back(Error(n_lineas, n_lineas, string("Semántico"), string(s),string(s)));
+	//cout << "Error sintáctico en línea "<< n_lineas<<": "<< s <<endl;	      
       //fprintf (stderr, "%s\n", s);
 } 
 
@@ -237,14 +241,14 @@ coodernada:
 
 
 escribir:
-      ESCRIBIR expr           {  $$ = new Escribir(n_lineas, n_lineas, $2);  $$->ejecutar(); }
+      ESCRIBIR expr           {  $$ = new Escribir(n_lineas, n_lineas, $2);  $$->ejecutar(&global); }
 ;
 
-expr:    NUMERO 		      { ; }
-       | REAL                 { ; }
-       | VERDADERO            { ; }
-       | FALSO                { ; }
-       | expr '+' expr        { ; }
+expr:    NUMERO 		      { $$ = new Literal(n_lineas,n_lineas, $1); }
+       | REAL                 { $$ = new Literal(n_lineas,n_lineas, $1); }
+       | VERDADERO            { $$ = new Literal(n_lineas,n_lineas, $1); }
+       | FALSO                { $$ = new Literal(n_lineas,n_lineas, $1); }
+       | expr '+' expr        { $$ = new Suma(n_lineas, n_lineas, $1, $3); }
        | expr '-' expr    	{ ; }            
        | expr '*' expr        { ; } 
        | expr '/' expr        { ; } 
@@ -260,9 +264,9 @@ expr:    NUMERO 		      { ; }
        | expr AND expr        { ; }
        | expr OR expr         { ; }
        |'-' expr %prec menos  { ; }
-       | '(' expr ')'         { ; }  
-       | ID                   { ; }  
-       | CADENA               { string cad($1); $$ = new Literal(n_lineas, n_lineas,cad );}
+       | '(' expr ')'         { $$ = $2; }  
+       | ID                   { string id($1);   }  
+       | CADENA               { string cad($1); $$ = new Literal(n_lineas, n_lineas, cad );}
        ;
 %%
 
@@ -278,7 +282,7 @@ int main(int argc, char *argv[])
             yyin=fopen(argv[1],"rt");           
             yyout = fopen(argv[2],"wt");
             n_lineas = 1;
-            cout<<"--------------------------------------------------------------------"<<endl;
+            
             yyparse();
             if(raiz == NULL)
             {
@@ -288,13 +292,16 @@ int main(int argc, char *argv[])
             {
                   if(raiz->esInstruccion())
                   {
-                        raiz->ejecutar();
+                        raiz->ejecutar(&global);
                   }
             }
             cout<<"--------------------------------------------------------------------"<<endl;
-            //string dataTabla = tablaSimbolo->getCadenaData();            
-            //fputs(dataTabla.data(), yyout);
-            fprintf(yyout, "\n");
+            /*Ahora imprimimos todos los errores*/
+            for(auto e: listaErrores)
+            {
+                  cout<< e.getMensaje()<<endl;
+            }
+            cout<<"--------------------------------------------------------------------\n"<<endl;            
             return 0;
       }     
       return 0;
