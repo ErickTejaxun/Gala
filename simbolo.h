@@ -10,6 +10,7 @@ Teoría de Lenguajes UEx 2020
 #include <stdio.h>
 #include <map>
 #include <iostream>
+#include <math.h>
 
 using namespace std;
 class Expresion;
@@ -348,27 +349,23 @@ class Suma: public Expresion
                 return resultado;
             }
 
-            if(getTipo(e).esReal()) // TIPOREAL
+            simbolo resultado = simbolo(); 
+            resultado.linea = linea; 
+            resultado.columna = columna; 
+            resultado.tipo = getTipo(e);
+            if(resultado.getTipo(e).esReal()) // TIPOREAL
             {
-                simbolo resultado = simbolo(); 
-                resultado.linea = linea; 
-                resultado.columna = columna; 
-                resultado.tipo = Type(TIPOREAL);
+                
                 resultado.valor_real = (valor_izquierdo.getTipo(e).esReal() ?  valor_izquierdo.valor_real: valor_izquierdo.valor_entero) +
-                                       (valor_derecho.getTipo(e).esReal()? valor_derecho.valor_real: valor_derecho.valor_entero);                    
-                return resultado;
-            }
+                                       (valor_derecho.getTipo(e).esReal()? valor_derecho.valor_real: valor_derecho.valor_entero);                                    
+            }            
+            if(resultado.getTipo(e).esEntero())
+            {                                
+                resultado.valor_entero = valor_izquierdo.valor_entero + valor_derecho.valor_entero;                                
+            }                                        
+            return resultado;
 
-            if(getTipo(e).esEntero())
-            {
-                simbolo resultado = simbolo(); 
-                resultado.linea = linea; 
-                resultado.columna = columna; 
-                resultado.tipo = Type(TIPOENTERO);
-                resultado.valor_entero = valor_izquierdo.valor_entero + valor_derecho.valor_entero;                
-                return resultado;
-            }
-            
+
         }
 
         Type getTipo(Entorno *e) override
@@ -390,6 +387,358 @@ class Suma: public Expresion
             {
                 return Type(TIPOENTERO);
             }
+
+        }
+};
+
+
+
+class Resta: public Expresion
+{
+    public:
+        Expresion *izquierdo;
+        Expresion *derecho; 
+               
+        Resta(int l, int c, Expresion *i, Expresion *d)
+        {
+            izquierdo = i;
+            derecho  = d;
+            linea = l;
+            columna = c;
+        }
+
+        simbolo getValor(Entorno *e) override
+        {
+            simbolo valor_izquierdo = izquierdo->getValor(e);
+            simbolo valor_derecho = derecho->getValor(e);
+            
+
+            simbolo resultado = simbolo(); 
+            resultado.linea = linea; 
+            resultado.columna = columna; 
+            resultado.tipo = getTipo(e);
+            if(resultado.getTipo(e).esReal()) // TIPOREAL
+            {
+                
+                resultado.valor_real = (valor_izquierdo.getTipo(e).esReal() ?  valor_izquierdo.valor_real: valor_izquierdo.valor_entero) -
+                                       (valor_derecho.getTipo(e).esReal()? valor_derecho.valor_real: valor_derecho.valor_entero);                                    
+            }            
+            if(resultado.getTipo(e).esEntero())
+            {                                
+                resultado.valor_entero = valor_izquierdo.valor_entero - valor_derecho.valor_entero;                                
+            }                                        
+            return resultado;
+
+
+        }
+
+        Type getTipo(Entorno *e) override
+        {
+
+            if(izquierdo->getTipo(e).esCadena() || derecho->getTipo(e).esCadena())
+            {
+                return Type(TIPOERROR);
+            }
+            if(izquierdo->getTipo(e).esLogico() || derecho->getTipo(e).esLogico())
+            {                           
+                return Type(TIPOERROR); // TIPOERROR;
+            }
+            if(izquierdo->getTipo(e).esReal() || derecho->getTipo(e).esReal())
+            {
+                return Type(TIPOREAL);
+            }
+            if(izquierdo->getTipo(e).esEntero() ||derecho->getTipo(e).esEntero())
+            {
+                return Type(TIPOENTERO);
+            }
+
+        }
+};
+
+
+class Multiplicacion: public Expresion
+{
+    public:
+        Expresion *izquierdo;
+        Expresion *derecho; 
+               
+        Multiplicacion(int l, int c, Expresion *i, Expresion *d)
+        {
+            izquierdo = i;
+            derecho  = d;
+            linea = l;
+            columna = c;
+        }
+
+        simbolo getValor(Entorno *e) override
+        {
+            simbolo valor_izquierdo = izquierdo->getValor(e);
+            simbolo valor_derecho = derecho->getValor(e);
+            
+
+            simbolo resultado = simbolo(); 
+            resultado.linea = linea; 
+            resultado.columna = columna; 
+            resultado.tipo = getTipo(e);
+            if(resultado.getTipo(e).esReal()) // TIPOREAL
+            {
+                
+                resultado.valor_real = (valor_izquierdo.getTipo(e).esReal() ?  valor_izquierdo.valor_real: valor_izquierdo.valor_entero) *
+                                       (valor_derecho.getTipo(e).esReal()? valor_derecho.valor_real: valor_derecho.valor_entero);                                    
+            }            
+            if(resultado.getTipo(e).esEntero())
+            {                                
+                resultado.valor_entero = valor_izquierdo.valor_entero * valor_derecho.valor_entero;                                
+            }                                        
+            return resultado;
+
+
+        }
+
+        Type getTipo(Entorno *e) override
+        {
+
+            if(izquierdo->getTipo(e).esCadena() || derecho->getTipo(e).esCadena())
+            {
+                return Type(TIPOERROR);
+            }
+            if(izquierdo->getTipo(e).esLogico() || derecho->getTipo(e).esLogico())
+            {                           
+                return Type(TIPOERROR); // TIPOERROR;
+            }
+            if(izquierdo->getTipo(e).esReal() || derecho->getTipo(e).esReal())
+            {
+                return Type(TIPOREAL);
+            }
+            if(izquierdo->getTipo(e).esEntero() ||derecho->getTipo(e).esEntero())
+            {
+                return Type(TIPOENTERO);
+            }
+
+        }
+};
+
+
+class Division: public Expresion
+{
+    public:
+        Expresion *izquierdo;
+        Expresion *derecho; 
+               
+        Division(int l, int c, Expresion *i, Expresion *d)
+        {
+            izquierdo = i;
+            derecho  = d;
+            linea = l;
+            columna = c;
+        }
+
+        simbolo getValor(Entorno *e) override
+        {
+            simbolo valor_izquierdo = izquierdo->getValor(e);
+            simbolo valor_derecho = derecho->getValor(e);
+            
+
+            simbolo resultado = simbolo(); 
+            resultado.linea = linea; 
+            resultado.columna = columna; 
+            resultado.tipo = getTipo(e);
+            if(resultado.getTipo(e).esReal()) // TIPOREAL
+            {
+                
+                resultado.valor_real = (valor_izquierdo.getTipo(e).esReal() ?  valor_izquierdo.valor_real: valor_izquierdo.valor_entero) /
+                                       (valor_derecho.getTipo(e).esReal()? valor_derecho.valor_real: valor_derecho.valor_entero);                                    
+            }            
+            if(resultado.getTipo(e).esEntero())
+            {                                
+                resultado.valor_entero = valor_izquierdo.valor_entero / valor_derecho.valor_entero;                                
+            }                                        
+            return resultado;
+
+
+        }
+
+        Type getTipo(Entorno *e) override
+        {
+
+            if(izquierdo->getTipo(e).esCadena() || derecho->getTipo(e).esCadena())
+            {
+                return Type(TIPOERROR);
+            }
+            if(izquierdo->getTipo(e).esLogico() || derecho->getTipo(e).esLogico())
+            {                           
+                return Type(TIPOERROR); // TIPOERROR;
+            }
+            if(izquierdo->getTipo(e).esReal() || derecho->getTipo(e).esReal())
+            {
+                return Type(TIPOREAL);
+            }
+            if(izquierdo->getTipo(e).esEntero() ||derecho->getTipo(e).esEntero())
+            {
+                return Type(TIPOENTERO);
+            }
+
+        }
+};
+
+
+
+
+
+class Potencia: public Expresion
+{
+    public:
+        Expresion *izquierdo;
+        Expresion *derecho; 
+               
+        Potencia(int l, int c, Expresion *i, Expresion *d)
+        {
+            izquierdo = i;
+            derecho  = d;
+            linea = l;
+            columna = c;
+        }
+
+        simbolo getValor(Entorno *e) override
+        {
+            simbolo valor_izquierdo = izquierdo->getValor(e);
+            simbolo valor_derecho = derecho->getValor(e);
+            
+
+            simbolo resultado = simbolo(); 
+            resultado.linea = linea; 
+            resultado.columna = columna; 
+            resultado.tipo = getTipo(e);
+            if(resultado.getTipo(e).esReal()) // TIPOREAL
+            {
+                
+                resultado.valor_real = pow (
+                                        (valor_izquierdo.getTipo(e).esReal() ?  valor_izquierdo.valor_real: valor_izquierdo.valor_entero),
+                                       (valor_derecho.getTipo(e).esReal()? valor_derecho.valor_real: valor_derecho.valor_entero));                           
+            }                                                  
+            return resultado;
+
+
+        }
+
+        Type getTipo(Entorno *e) override
+        {
+
+            if(izquierdo->getTipo(e).esCadena() || derecho->getTipo(e).esCadena())
+            {
+                return Type(TIPOERROR);
+            }
+            if(izquierdo->getTipo(e).esLogico() || derecho->getTipo(e).esLogico())
+            {                           
+                return Type(TIPOERROR); // TIPOERROR;
+            }
+            if(izquierdo->getTipo(e).esReal() || derecho->getTipo(e).esReal())
+            {
+                return Type(TIPOREAL);
+            }
+            if(izquierdo->getTipo(e).esEntero() ||derecho->getTipo(e).esEntero())
+            {
+                return Type(TIPOREAL);
+            }
+
+        }
+};
+
+
+
+class Modulo: public Expresion
+{
+    public:
+        Expresion *izquierdo;
+        Expresion *derecho; 
+        Modulo(int l, int c, Expresion *i, Expresion *d)
+        {
+            izquierdo = i;
+            derecho  = d;
+            linea = l;
+            columna = c;
+        }
+
+        simbolo getValor(Entorno *e) override
+        {
+            simbolo valor_izquierdo = izquierdo->getValor(e);
+            simbolo valor_derecho = derecho->getValor(e);
+            
+
+            simbolo resultado = simbolo(); 
+            resultado.linea = linea; 
+            resultado.columna = columna; 
+            resultado.tipo = getTipo(e);
+            if(resultado.getTipo(e).esEntero()) // TIPOREAL
+            {
+                
+                resultado.valor_real = valor_izquierdo.valor_entero % valor_derecho.valor_entero; 
+            }                                                  
+            return resultado;
+        }
+
+        Type getTipo(Entorno *e) override
+        {
+
+            if(izquierdo->getTipo(e).esCadena() || derecho->getTipo(e).esCadena())
+            {
+                return Type(TIPOERROR);
+            }
+            if(izquierdo->getTipo(e).esLogico() || derecho->getTipo(e).esLogico())
+            {                           
+                return Type(TIPOERROR); // TIPOERROR;
+            }
+            if(izquierdo->getTipo(e).esReal() || derecho->getTipo(e).esReal())
+            {
+                return Type(TIPOREAL);
+            }
+            if(izquierdo->getTipo(e).esEntero() ||derecho->getTipo(e).esEntero())
+            {
+                return Type(TIPOREAL);
+            }
+
+        }
+};
+
+class Menos: public Expresion
+{
+    public:
+        Expresion *expr ;     
+               
+        Menos(int l, int c, Expresion *e)
+        {            
+            expr = e;
+            linea = l;
+            columna = c;
+        }
+
+        simbolo getValor(Entorno *e) override
+        {
+            simbolo valor = expr->getValor(e);            
+            
+
+            simbolo resultado = simbolo(); 
+            resultado.linea = linea; 
+            resultado.columna = columna; 
+            resultado.tipo = getTipo(e);
+            resultado.valor_entero = valor.valor_entero * -1;
+            resultado.valor_real = valor.valor_real * -1;                                             
+            return resultado;
+        }
+
+        Type getTipo(Entorno *e) override
+        {
+            if(expr->getTipo(e).esReal())
+            {
+                return Type(TIPOREAL);
+            }
+
+            if(expr->getTipo(e).esEntero())
+            {
+                return Type(TIPOENTERO);
+            }    
+
+            return Type(TIPOREAL);        
 
         }
 };

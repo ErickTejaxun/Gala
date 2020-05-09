@@ -249,11 +249,11 @@ expr:    NUMERO 		      { $$ = new Literal(n_lineas,n_lineas, $1); }
        | VERDADERO            { $$ = new Literal(n_lineas,n_lineas, $1); }
        | FALSO                { $$ = new Literal(n_lineas,n_lineas, $1); }
        | expr '+' expr        { $$ = new Suma(n_lineas, n_lineas, $1, $3); }
-       | expr '-' expr    	{ ; }            
-       | expr '*' expr        { ; } 
-       | expr '/' expr        { ; } 
-       | expr '%' expr        { ; } 
-       | expr '^' expr        { ; } 
+       | expr '-' expr    	{ $$ = new Resta(n_lineas, n_lineas, $1, $3); }            
+       | expr '*' expr        { $$ = new Multiplicacion(n_lineas, n_lineas, $1,$3); } 
+       | expr '/' expr        { $$ = new Division(n_lineas, n_lineas, $1,$3); } 
+       | expr '%' expr        { $$ = new Modulo(n_lineas, n_lineas, $1,$3); } 
+       | expr '^' expr        { $$ = new Potencia(n_lineas, n_lineas, $1,$3); } 
        | expr '<' expr        { ; }
        | expr '>' expr        { ; }
        | expr IGUAL expr      { ; }
@@ -263,7 +263,7 @@ expr:    NUMERO 		      { $$ = new Literal(n_lineas,n_lineas, $1); }
        | '!' expr             { ; }
        | expr AND expr        { ; }
        | expr OR expr         { ; }
-       |'-' expr %prec menos  { ; }
+       |'-' expr %prec menos  { $$ = new Menos(n_lineas,n_lineas,$2); }
        | '(' expr ')'         { $$ = $2; }  
        | ID                   { string id($1);   }  
        | CADENA               { string cad($1); $$ = new Literal(n_lineas, n_lineas, cad );}
