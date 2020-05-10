@@ -22,7 +22,7 @@ Entorno global = new Entorno(NULL);
 //definición de procedimientos auxiliares
 void yyerror(const char* s)
 {         /*    llamada por cada error sintactico de yacc */
-      listaErrores.push_back(Error(n_lineas, n_lineas, string("Semántico"), string(s),string(s)));
+      listaErrores.push_back(Error(n_lineas, n_lineas, string("Sintáctico"), string(s),string(s)));
 	//cout << "Error sintáctico en línea "<< n_lineas<<": "<< s <<endl;	      
       //fprintf (stderr, "%s\n", s);
 } 

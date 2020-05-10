@@ -12,7 +12,9 @@ DEFINICIONES
   escribir "Erick Roberto " + "Tejaxun Xicon" + " Guatemala" +  (10 + 3.33)
   escribir 10
   escribir 10.3 + 5 +3.5 + 200
-  escribir 666 +1 + 33/ 1.5* 33/1.5
+  escribir -666 +1 + 33/ 1.5* 33/1.5
+  escribir -false
+  escribir 10 + true
   escribir "hola perros"
   escribir false
   escribir "primer frase" + " otra frase"
