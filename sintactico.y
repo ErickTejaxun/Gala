@@ -66,7 +66,7 @@ void yyerror(const char* s)
 
 
 %type <instruccion> escribir
-%type <expresion> expr
+%type <expresion> expr coodernada
 
 %right '!'
 %left AND OR
@@ -235,13 +235,14 @@ si:
 
 
 coodernada:
-       '<' expr ',' expr '>'{ ; }
+       '<' expr ',' expr '>'{ $$ = new Posicion(n_lineas, n_lineas, $2, $4); }
 ;
 
 
 
 escribir:
       ESCRIBIR expr           {  $$ = new Escribir(n_lineas, n_lineas, $2);  $$->ejecutar(&global); }
+    | ESCRIBIR coodernada     {  $$ = new Escribir(n_lineas, n_lineas, $2);  $$->ejecutar(&global); }
 ;
 
 expr:    NUMERO 		      { $$ = new Literal(n_lineas,n_lineas, $1); }

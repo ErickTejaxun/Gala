@@ -92,7 +92,7 @@ class simbolo
         int valor_entero=0;
         float valor_real=0;   
         bool valor_booleano=0;
-        Expresion *valor_posicion[2];
+        int  valor_posicion[2];
         string valor_cadena;
         string id ="";
         int linea;
@@ -103,7 +103,7 @@ class simbolo
         simbolo(string i, float v, int l, int c): id(i), valor_real(v), linea(l), columna(c){tipo = Type(TIPOREAL);};
         simbolo(string i, bool v, int l, int c): id(i), valor_booleano(v), linea(l), columna(c){tipo = Type(TIPOLOGICO);};                
         simbolo(string i, string v, int l, int c): id(i), valor_cadena(v), linea(l), columna(c){tipo = Type(TIPOCADENA);};
-        simbolo(string i, Expresion *y, Expresion *x, int l, int c): id(i), linea(l), columna(c){ tipo =Type(TIPOPOSICION); valor_posicion[0] = y; valor_posicion[1] = x;}
+        simbolo(string i, int y, int x, int l, int c): id(i), linea(l), columna(c){ tipo =Type(TIPOPOSICION); valor_posicion[0] = y; valor_posicion[1] = x;}
         string getCadenaLogico(){return valor_booleano? "verdadero": "falso";}   
         Type getTipo(Entorno *e){ return tipo;}
 };
@@ -294,13 +294,6 @@ class Literal: public Expresion
             linea = l;
             columna = c;            
         }
-        /*TIPOPOSICION*/
-        Literal(int l, int c, Expresion *y, Expresion *x)
-        {
-            valor = simbolo("",y,x,l,c);
-            linea = l;
-            columna = c;            
-        }
 
         simbolo getValor(Entorno *e) override
         {
@@ -312,6 +305,45 @@ class Literal: public Expresion
             return valor.tipo;
         }
 };
+
+class Posicion: public Expresion
+{
+    public: 
+        Expresion *y_coordenada;
+        Expresion *x_coordenada;
+        Posicion(int l, int c, Expresion *y, Expresion *x)
+        {
+            linea = l;
+            columna = c;
+            y_coordenada = y;
+            x_coordenada = x;
+        }        
+
+        simbolo getValor(Entorno *e) override
+        {
+            simbolo valor = simbolo();
+            valor.linea = linea;
+            valor.columna = columna;
+            valor.tipo = getTipo(e);
+            if(!valor.tipo.esError())
+            {
+                valor.valor_posicion[0] = y_coordenada->getTipo(e).esReal() ? y_coordenada->getValor(e).valor_real: y_coordenada->getValor(e).valor_entero;
+                valor.valor_posicion[1] = x_coordenada->getTipo(e).esReal() ? x_coordenada->getValor(e).valor_real: x_coordenada->getValor(e).valor_entero;
+            }
+            return valor;
+        }
+
+        Type getTipo(Entorno *e) override
+        {
+            if(y_coordenada->getTipo(e).esNumerico() && x_coordenada->getTipo(e).esNumerico())
+            {
+                return Type(TIPOPOSICION);
+            }
+            return Type(TIPOERROR);
+        }
+};
+
+
 
 class Suma: public Expresion
 {
@@ -973,7 +1005,7 @@ class Escribir: public Instruccion
                     cout<< expr->getValor(e).valor_cadena<<endl;        
                     break;        
                 case TIPOPOSICION:
-                    cout<< expr->getValor(e).valor_posicion[0] << expr->getValor(e).valor_posicion[1]<<endl;
+                    cout<< "y:" <<expr->getValor(e).valor_posicion[0] <<", x:"<< expr->getValor(e).valor_posicion[1]<<endl;
                     break;    
                 case TIPOERROR:
                     //cout <<"<---------------->";

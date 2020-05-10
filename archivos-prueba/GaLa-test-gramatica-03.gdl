@@ -21,6 +21,7 @@ DEFINICIONES
   escribir false
   escribir "primer frase" + " otra frase"
   escribir true
+  escribir <10, 20>
   entero a,b
   real c
   cadena d; # Error ; 
