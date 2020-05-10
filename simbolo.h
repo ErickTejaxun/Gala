@@ -69,7 +69,8 @@ class Type
         bool esLogico(){ return tipo == TIPOLOGICO;};        
         bool esCadena(){ return tipo ==TIPOCADENA;}        
         bool esPosicion(){return tipo==TIPOPOSICION;}  
-        bool esError(){return tipo==TIPOERROR;}                         
+        bool esError(){return tipo==TIPOERROR;}   
+        bool esNumerico(){ return esEntero()|| esReal();}                      
         string getNombre()
         {
             if(esEntero()){return "Entero";}
@@ -776,6 +777,122 @@ class Menos: public Expresion
 };
 
 
+class Relacional: public Expresion
+{
+    public:
+        Expresion *izquierdo;
+        Expresion *derecho;  
+        string operacion;
+        Relacional(int l, int c, Expresion * i, string op,  Expresion *d)
+        {
+            izquierdo = i;
+            derecho = d;
+            linea = l;
+            columna = c;
+            operacion = op;
+        }
+
+        simbolo getValor(Entorno *e)
+        {
+            simbolo resultado = simbolo();
+            resultado.linea = linea;
+            resultado.columna = columna;
+            resultado.tipo = getTipo(e);                        
+            if(resultado.tipo.esLogico())
+            {
+                Type tipo_izquierdo = izquierdo->getTipo(e);
+                Type tipo_derecho = derecho->getTipo(e);
+
+                if(operacion=="<")
+                {
+                    resultado.valor_booleano = tipo_izquierdo.esReal() ? 
+                        (izquierdo->getValor(e).valor_real < (tipo_derecho.esReal()? derecho->getValor(e).valor_real: derecho->getValor(e).valor_entero )):
+                        (izquierdo->getValor(e).valor_entero < (tipo_derecho.esReal()? derecho->getValor(e).valor_real: derecho->getValor(e).valor_entero ));
+                }
+                if(operacion==">")
+                {
+                    resultado.valor_booleano = tipo_izquierdo.esReal() ? 
+                        (izquierdo->getValor(e).valor_real > (tipo_derecho.esReal()? derecho->getValor(e).valor_real: derecho->getValor(e).valor_entero )):
+                        (izquierdo->getValor(e).valor_entero > (tipo_derecho.esReal()? derecho->getValor(e).valor_real: derecho->getValor(e).valor_entero ));
+                }   
+                if(operacion==">=")
+                {
+                    resultado.valor_booleano = tipo_izquierdo.esReal() ? 
+                        (izquierdo->getValor(e).valor_real >= (tipo_derecho.esReal()? derecho->getValor(e).valor_real: derecho->getValor(e).valor_entero )):
+                        (izquierdo->getValor(e).valor_entero >= (tipo_derecho.esReal()? derecho->getValor(e).valor_real: derecho->getValor(e).valor_entero ));
+                }                               
+                if(operacion=="<=")
+                {
+                    resultado.valor_booleano = tipo_izquierdo.esReal() ? 
+                        (izquierdo->getValor(e).valor_real <= (tipo_derecho.esReal()? derecho->getValor(e).valor_real: derecho->getValor(e).valor_entero )):
+                        (izquierdo->getValor(e).valor_entero <= (tipo_derecho.esReal()? derecho->getValor(e).valor_real: derecho->getValor(e).valor_entero ));
+                }    
+                if(operacion=="==")
+                {
+                    resultado.valor_booleano = tipo_izquierdo.esReal() ? 
+                        (izquierdo->getValor(e).valor_real == (tipo_derecho.esReal()? derecho->getValor(e).valor_real: derecho->getValor(e).valor_entero )):
+                        (izquierdo->getValor(e).valor_entero == (tipo_derecho.esReal()? derecho->getValor(e).valor_real: derecho->getValor(e).valor_entero ));
+                }  
+                if(operacion=="!=")
+                {
+                    resultado.valor_booleano = tipo_izquierdo.esReal() ? 
+                        (izquierdo->getValor(e).valor_real != (tipo_derecho.esReal()? derecho->getValor(e).valor_real: derecho->getValor(e).valor_entero )):
+                        (izquierdo->getValor(e).valor_entero != (tipo_derecho.esReal()? derecho->getValor(e).valor_real: derecho->getValor(e).valor_entero ));
+                }                                               
+            }
+            //printf("Resultado %d\n",resultado->tipo);
+            return resultado;      
+        } 
+
+        Type getTipo(Entorno *e) override
+        {
+            if( izquierdo->getTipo(e).esNumerico() && derecho->getTipo(e).esNumerico())
+            {
+                return Type(TIPOLOGICO);
+            }
+            Error::registrarErrorSemantico(linea, columna," " ,
+            "Error en operación ("+operacion+"): No es permitida la operación " + izquierdo->getTipo(e).getNombre() + " "+operacion+" " + derecho->getTipo(e).getNombre());            
+            return Type(TIPOERROR);
+        }       
+};
+
+
+class Negacion: public Expresion
+{
+    public:
+        Expresion *expr ;     
+               
+        Negacion(int l, int c, Expresion *e)
+        {            
+            expr = e;
+            linea = l;
+            columna = c;
+        }
+
+        simbolo getValor(Entorno *e) override
+        {
+            simbolo valor = expr->getValor(e);
+            simbolo resultado = simbolo(); 
+            resultado.linea = linea; 
+            resultado.columna = columna; 
+            resultado.tipo = getTipo(e);
+            resultado.valor_booleano =  ! valor.valor_booleano;
+            return resultado;
+        }
+
+        Type getTipo(Entorno *e) override
+        {
+            if(expr->getTipo(e).esLogico())
+            {
+                return Type(TIPOLOGICO);
+            }   
+            Error::registrarErrorSemantico(linea, columna," " ,
+            "Error en operación (-): No es permitida la operación  - " + expr->getTipo(e).getNombre()); 
+            return Type(TIPOERROR);        
+
+        }
+};
+
 
 /*Instrucciones------------------------------------------------------------------------------>*/
 class Escribir: public Instruccion
@@ -796,25 +913,24 @@ class Escribir: public Instruccion
             switch (type.tipo)
             {
                 case TIPOLOGICO:
-                    cout<< expr->getValor(e).getCadenaLogico();            
+                    cout<< expr->getValor(e).getCadenaLogico()<<endl;
                     break;                
                 case TIPOENTERO:
-                    cout<< expr->getValor(e).valor_entero;            
+                    cout<< expr->getValor(e).valor_entero<<endl;
                     break;        
                 case TIPOREAL:
-                    cout<< expr->getValor(e).valor_real;            
+                    cout<< expr->getValor(e).valor_real<<endl;    
                     break;        
                 case TIPOCADENA:
-                    cout<< expr->getValor(e).valor_cadena;            
+                    cout<< expr->getValor(e).valor_cadena<<endl;        
                     break;        
                 case TIPOPOSICION:
-                    cout<< expr->getValor(e).valor_posicion[0] << expr->getValor(e).valor_posicion[1];            
+                    cout<< expr->getValor(e).valor_posicion[0] << expr->getValor(e).valor_posicion[1]<<endl;
                     break;    
                 case TIPOERROR:
                     //cout <<"<---------------->";
                     break;                                                                      
-            }
-            printf("\n");
+            }            
         }       
 
 };

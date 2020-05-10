@@ -254,13 +254,13 @@ expr:    NUMERO 		      { $$ = new Literal(n_lineas,n_lineas, $1); }
        | expr '/' expr        { $$ = new Division(n_lineas, n_lineas, $1,$3); } 
        | expr '%' expr        { $$ = new Modulo(n_lineas, n_lineas, $1,$3); } 
        | expr '^' expr        { $$ = new Potencia(n_lineas, n_lineas, $1,$3); } 
-       | expr '<' expr        { ; }
-       | expr '>' expr        { ; }
-       | expr IGUAL expr      { ; }
-       | expr DESIGUAL expr   { ; }
-       | expr MAYORIGUAL expr { ; }
-       | expr MENORIGUAL expr { ; }
-       | '!' expr             { ; }
+       | expr '<' expr        { $$ = new Relacional(n_lineas, n_lineas, $1, "<", $3); }
+       | expr '>' expr        { $$ = new Relacional(n_lineas, n_lineas, $1, ">", $3); }
+       | expr IGUAL expr      { $$ = new Relacional(n_lineas, n_lineas, $1, "==", $3); }
+       | expr DESIGUAL expr   { $$ = new Relacional(n_lineas, n_lineas, $1, "!=", $3); }
+       | expr MAYORIGUAL expr { $$ = new Relacional(n_lineas, n_lineas, $1, ">=", $3); }
+       | expr MENORIGUAL expr { $$ = new Relacional(n_lineas, n_lineas, $1, "<=", $3); }
+       | '!' expr             { $$ = new Negacion(n_lineas,n_lineas,$2); }
        | expr AND expr        { ; }
        | expr OR expr         { ; }
        |'-' expr %prec menos  { $$ = new Menos(n_lineas,n_lineas,$2); }
