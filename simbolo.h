@@ -887,11 +887,59 @@ class Negacion: public Expresion
                 return Type(TIPOLOGICO);
             }   
             Error::registrarErrorSemantico(linea, columna," " ,
-            "Error en operación (-): No es permitida la operación  - " + expr->getTipo(e).getNombre()); 
+            "Error en operación (!): No es permitida la operación  ! " + expr->getTipo(e).getNombre()); 
             return Type(TIPOERROR);        
 
         }
 };
+
+
+class Logica: public Expresion
+{
+    public:
+        Expresion *izquierda ;     
+        Expresion *derecha;
+        string operacion;
+               
+        Logica(int l, int c, Expresion *i, string op, Expresion *d)
+        {            
+            izquierda = i;
+            derecha = d;
+            linea = l;
+            columna = c;
+            operacion = op;
+        }
+
+        simbolo getValor(Entorno *e) override
+        {            
+            simbolo resultado = simbolo(); 
+            resultado.linea = linea; 
+            resultado.columna = columna; 
+            resultado.tipo = getTipo(e);
+            if(operacion == "||")
+            {
+                resultado.valor_booleano =  izquierda->getValor(e).valor_booleano || derecha->getValor(e).valor_booleano ;
+            }            
+            if(operacion == "&&")
+            {
+                resultado.valor_booleano =  izquierda->getValor(e).valor_booleano && derecha->getValor(e).valor_booleano ;
+            }                        
+            return resultado;
+        }
+
+        Type getTipo(Entorno *e) override
+        {
+            if(izquierda->getTipo(e).esLogico()  && derecha->getTipo(e).esLogico())
+            {
+                return Type(TIPOLOGICO);
+            }   
+            Error::registrarErrorSemantico(linea, columna," " ,
+            "Error en operación ("+operacion+"): No es permitida la operación  "+ izquierda->getTipo(e).getNombre() + " " + operacion + " "+ derecha->getTipo(e).getNombre()); 
+            return Type(TIPOERROR);        
+
+        }
+};
+
 
 
 /*Instrucciones------------------------------------------------------------------------------>*/

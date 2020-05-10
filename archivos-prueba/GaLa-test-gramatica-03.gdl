@@ -10,7 +10,7 @@
 
 DEFINICIONES
 
-  escribir !!!!(10==10.5)
+  escribir !((10!=10.) && ( 100 > 20 ))
   escribir "Erick Roberto " + "Tejaxun Xicon" + " Guatemala" +  (10 + 3.33)
   escribir 10
   escribir 10.3 + 5 +3.5 + 200

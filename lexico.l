@@ -21,7 +21,7 @@ cadena "\""[^"\""]*"\""
 <COM1>.                        {;}   
 "#"                            {BEGIN(COM1);}
 [0-9]+			                yylval.valor_entero = atoi(yytext);return NUMERO;
-[0-9]+"."[0-9]+	                yylval.valor_real = atof(yytext);return REAL;
+[0-9]+"."[0-9]*	                yylval.valor_real = atof(yytext);return REAL;
 \n				                n_lineas++; return (yytext[0]);
 "<="                            return MENORIGUAL;
 ">="                            return MAYORIGUAL;
