@@ -1,0 +1,44 @@
+#
+# TL - Curso 2019/2020
+#
+# Proyecto GaLa
+#
+# GaLa-test-gramatica-05.gdl
+#
+
+# En GaLa tenemos 4 bloques: DEFINICIONES (opcional), CONFIGURACION (opcional), OBSTACULOS y EJEMPLOS
+# El orden es importante y se debe controlar. Este ejemplo debe reportar errores: 
+#       (1) No puede comenzar por el bloque EJEMPLO: lineas 12 a 21 y (2) 
+#       (2) En la línea 44 no se encuentra el bloque obligatorio EJEMPLOS
+
+EJEMPLOS
+
+    ejemplo caso1
+      norte 2
+      este 4
+      sur 1      
+      oeste 1
+      norte 1
+      escribir "Fin"
+    finejemplo
+
+DEFINICIONES
+
+    entero e0
+    real r0
+    C3 = "Hola mundo"
+
+CONFIGURACION
+
+    DiMeNsIon 8 + C1
+    EnTrada C7
+    SalIda C4
+    PausA C2 - 0.25
+
+OBSTACULOS
+
+    obstaculo <3,4>
+    norte 2
+    este 1
+    obstaculo
+    

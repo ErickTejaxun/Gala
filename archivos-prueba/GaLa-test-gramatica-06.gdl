@@ -1,0 +1,26 @@
+#
+# TL - Curso 2019/2020
+#
+# Proyecto GaLa
+#
+# GaLa-test-gramatica-06.gdl
+#
+
+# Este test debe reportar errores en todas las lineas, puesto que no encuentra identificadores de inicio de bloques.
+
+obstaculo <3,4>
+obstaculo <C1,C1>
+obstaculo p3
+entero e0
+real r0
+cadena c0
+posicion p0
+norte e1 - 1
+este C1 + 2
+sur 1      
+oeste 1
+norte 1
+C1 = 2
+C2 = 0.75
+C3 = "Hola mundo"
+C4 = <2,9> 

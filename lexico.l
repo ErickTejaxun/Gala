@@ -9,7 +9,7 @@ int n_lineas;
 
 
 %}
-%x COM1 
+%x COM1 COM
 %option noyywrap
 
 DIGITO [0-9]
@@ -17,12 +17,16 @@ ident ([a-zA-Z]|_)([a-zA-Z]|_|{DIGITO})*
 cadena "\""[^"\""]*"\""
 %%
 
-<COM1>\n                       {n_lineas++; BEGIN(0); return (yytext[0]); }
+<COM1>\n                       {n_lineas++; BEGIN(COM); /*return (yytext[0]); yyless(1);*/}
 <COM1>.                        {;}   
-"#"                            {BEGIN(COM1);}
+<COM>\n                        {n_lineas++;}
+<COM>"#"                       {BEGIN(COM1);}
+<COM>.                         {yyless(0); BEGIN(0);}
+"#"                            {yyless(0); BEGIN(COM);}
 [0-9]+			                yylval.valor_entero = atoi(yytext);return NUMERO;
 [0-9]+"."[0-9]*	                yylval.valor_real = atof(yytext);return REAL;
-\n				                n_lineas++; return (yytext[0]);
+[\n][\n]+		                n_lineas+=yyleng; printf("%i saltos\n",yyleng); return (yytext[0]);
+[\n]   	                        n_lineas++; return (yytext[0]);
 "<="                            return MENORIGUAL;
 ">="                            return MAYORIGUAL;
 "=="                            return IGUAL;

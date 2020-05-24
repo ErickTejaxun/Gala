@@ -24,11 +24,6 @@ extern vector<Error> listaErrores;
 
 
 enum TYPES { TIPOENTERO, TIPOREAL, TIPOLOGICO, TIPOCADENA, TIPOPOSICION, TIPOERROR};
-
-
-
-
-
 class Error
 {
     public:
@@ -96,7 +91,7 @@ class simbolo
         string valor_cadena;
         string id ="";
         int linea;
-        int columna;
+        int columna;                
         /*Constructores*/
         simbolo() {} ;
         simbolo(string i, int v, int l, int c): id(i), valor_entero(v), linea(l), columna(c){tipo = Type(TIPOENTERO);};
@@ -105,8 +100,12 @@ class simbolo
         simbolo(string i, string v, int l, int c): id(i), valor_cadena(v), linea(l), columna(c){tipo = Type(TIPOCADENA);};
         simbolo(string i, int y, int x, int l, int c): id(i), linea(l), columna(c){ tipo =Type(TIPOPOSICION); valor_posicion[0] = y; valor_posicion[1] = x;}
         string getCadenaLogico(){return valor_booleano? "verdadero": "falso";}   
-        Type getTipo(Entorno *e){ return tipo;}
+        Type getTipo(Entorno *e){ return tipo;}    
+
+        /*Manejo de consantes*/
+        bool constante = false;        
 };
+
 
 class TablaSimbolos
 {
@@ -148,13 +147,12 @@ class TablaSimbolos
                 simbolo *tmp = & it->second;     
                 return tmp;            
             }
-            else
-            {
-                simbolo *tmp = new simbolo();
-                tmp->tipo.setTipo(TIPOERROR);
-                cout<<"Error semántico en línea "<<linea <<": Símbolo "<< id<<" no encontrado "<<endl;
-                return tmp;
-            }                
+
+            simbolo *tmp = new simbolo();
+            tmp->tipo.setTipo(TIPOERROR);
+            Error::registrarErrorSemantico(linea, linea, id, "Símbolo " +id+" no encontrado en el entorno actual.");                
+            return tmp;
+            
         }        
 
         int insertarSimbolo(simbolo *s)
@@ -198,7 +196,8 @@ class TablaSimbolos
                 }
                 else
                 {
-                    cout<<"Error semántico en línea "<<s->linea<<": La variable "<<s->id<<" es de tipo "<<it->second.tipo.getNombre()<<", TIPOERROR tratando de asignar un valor de tipo "<<s->tipo.getNombre()<<endl;
+                    Error::registrarErrorSemantico(s->linea, s->columna, s->id,                         
+                        "La variable " +s->id+ " es de tipo " +it->second.tipo.getNombre()+", Error tratando de asignar un valor de tipo " +s->tipo.getNombre());                
                 }
             }
             else
@@ -221,7 +220,8 @@ class Entorno
         {
             padre = p;
             tabla = TablaSimbolos();
-        }        
+        }   
+             
 };
 
 /*Clase NodoAST es una clase abstracta que nos permitirá definir las principales operaciones
@@ -262,7 +262,7 @@ class Instruccion: public NodoAST
         //virtual ~Instruccion() { };           
 };
 
-/*Expresiones*/
+/*Expresiones------------------------------------------------------------>*/
 class Literal: public Expresion
 {
     public:
@@ -344,7 +344,6 @@ class Posicion: public Expresion
 };
 
 
-
 class Suma: public Expresion
 {
     public:
@@ -360,8 +359,8 @@ class Suma: public Expresion
         }
 
         simbolo getValor(Entorno *e) override
-        {
-            Type tmp = getTipo(e);
+        {            
+            Type tmp = getTipo(e);            
             simbolo valor_izquierdo = izquierdo->getValor(e);
             simbolo valor_derecho = derecho->getValor(e);
 
@@ -407,30 +406,31 @@ class Suma: public Expresion
 
         Type getTipo(Entorno *e) override
         {
-
-            if(izquierdo->getTipo(e).esCadena() || derecho->getTipo(e).esCadena())
+            if(!izquierdo->getTipo(e).esError() && !derecho->getTipo(e).esError())         
             {
-                return Type(TIPOCADENA);
+                if(izquierdo->getTipo(e).esCadena() || derecho->getTipo(e).esCadena())
+                {
+                    return Type(TIPOCADENA);
+                }
+                if(izquierdo->getTipo(e).esLogico() || derecho->getTipo(e).esLogico())
+                {              
+                    Error::registrarErrorSemantico(linea, columna," " ,
+                    "Error en operación (+): No es permitida la operación " + izquierdo->getTipo(e).getNombre() + " + " + derecho->getTipo(e).getNombre());                             
+                    return Type(TIPOERROR); // TIPOERROR;
+                }
+                if(izquierdo->getTipo(e).esReal() || derecho->getTipo(e).esReal())
+                {
+                    return Type(TIPOREAL);
+                }
+                if(izquierdo->getTipo(e).esEntero() ||derecho->getTipo(e).esEntero())
+                {
+                    return Type(TIPOENTERO);
+                }                
             }
-            if(izquierdo->getTipo(e).esLogico() || derecho->getTipo(e).esLogico())
-            {              
-                Error::registrarErrorSemantico(linea, columna," " ,
-                "Error en operación (+): No es permitida la operación " + izquierdo->getTipo(e).getNombre() + " + " + derecho->getTipo(e).getNombre());                             
-                return Type(TIPOERROR); // TIPOERROR;
-            }
-            if(izquierdo->getTipo(e).esReal() || derecho->getTipo(e).esReal())
-            {
-                return Type(TIPOREAL);
-            }
-            if(izquierdo->getTipo(e).esEntero() ||derecho->getTipo(e).esEntero())
-            {
-                return Type(TIPOENTERO);
-            }
-
+            
             Error::registrarErrorSemantico(linea, columna," " ,
             "Error en operación (+): No es permitida la operación " + izquierdo->getTipo(e).getNombre() + " + " + derecho->getTipo(e).getNombre());                                        
             return Type(TIPOERROR);
-
         }
 };
 
@@ -973,6 +973,41 @@ class Logica: public Expresion
 };
 
 
+class Variable: public Expresion
+{
+    public:
+        string id;
+        Variable(int l, int c, string i)
+        {
+            id = i;
+            linea = l;
+            columna = c;
+        }
+
+        simbolo getValor(Entorno *e) override
+        {            
+            simbolo *tmp = e->tabla.obtenerSimbolo(id, linea);
+            if(tmp==NULL)
+            {                
+                simbolo resultado = simbolo(); 
+                resultado.linea = linea; 
+                resultado.columna = columna; 
+                resultado.tipo = Type(TIPOERROR);
+                return resultado;                
+            }            
+            return *tmp;
+        }
+
+        Type getTipo(Entorno *e) override
+        {
+            simbolo *tmp = e->tabla.obtenerSimbolo(id, linea);
+            if(tmp==NULL)
+            {                
+                return Type(TIPOERROR);
+            }
+            return tmp->tipo;
+        }        
+};
 
 /*Instrucciones------------------------------------------------------------------------------>*/
 class Escribir: public Instruccion

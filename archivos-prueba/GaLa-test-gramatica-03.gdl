@@ -10,6 +10,8 @@
 
 DEFINICIONES
 
+
+
   escribir !((10!=10.) && ( 100 > 20 ))
   escribir "Erick Roberto " + "Tejaxun Xicon" + " Guatemala" +  (10 + 3.33)
   escribir 10
@@ -22,12 +24,13 @@ DEFINICIONES
   escribir "primer frase" + " otra frase"
   escribir true
   escribir <10, 20>
+  escribir A
   entero a,b
   real c
   cadena d; # Error ; 
   posicion f
   
-  ; #Error
+  #Error
 
   K0 = 2
   K1 = "Final"; #Error
