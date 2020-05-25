@@ -281,11 +281,12 @@ int main(int argc, char *argv[])
             yyin=fopen(argv[1],"rt");           
             yyout = fopen(argv[2],"wt");
             n_lineas = 1;
-            
+            printf("\nComenzando el analisis.\n");
+            cout<<"--------------------------------------------------------------------"<<endl;
             yyparse();
             if(raiz == NULL)
             {
-                  printf("Nada que ejecutar\n");                  
+                  printf("\nNada que ejecutar\n");                  
             }
             else
             {
