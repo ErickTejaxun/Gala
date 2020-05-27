@@ -239,8 +239,8 @@ coodernada:
 
 
 escribir:
-      ESCRIBIR expr           {  $$ = new Escribir(n_lineas, n_lineas, $2);  $$->ejecutar(&global); }
-    | ESCRIBIR coodernada     {  $$ = new Escribir(n_lineas, n_lineas, $2);  $$->ejecutar(&global); }
+      ESCRIBIR expr           {  $$ = new Escribir(n_lineas, n_lineas, $2);  /*$$->ejecutar(&global);*/ }
+    | ESCRIBIR coodernada     {  $$ = new Escribir(n_lineas, n_lineas, $2);  /*$$->ejecutar(&global);*/ }
 ;
 
 expr:    NUMERO 		      { $$ = new Literal(n_lineas,n_lineas, $1); }
