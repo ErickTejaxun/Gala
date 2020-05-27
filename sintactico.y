@@ -91,7 +91,8 @@ programa:
       | definiciones  obstaculos ejemplos 
       | separador definiciones  obstaculos ejemplos               {/*Produccion para manejar los espacios en blanco al inicio*/}
       | separador  obstaculos ejemplos                            {/*Produccion para manejar los espacios en blanco al inicio*/}
-      | obstaculos ejemplos       
+      | obstaculos ejemplos  
+      | error separador {yyerrok;}  
       ;
 
 definiciones: 
@@ -278,9 +279,15 @@ int main(int argc, char *argv[])
       }		
       else       
       {
-            yyin=fopen(argv[1],"rt");           
+            yyin=fopen(argv[1],"rt");
             yyout = fopen(argv[2],"wt");
             n_lineas = 1;
+            if(yyin==0)
+            {
+                  printf("El fichero %s no existe\n",argv[1]);
+                  return 0;
+            }
+
             printf("\nComenzando el analisis.\n");
             cout<<"--------------------------------------------------------------------"<<endl;
             yyparse();

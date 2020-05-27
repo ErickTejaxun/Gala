@@ -27,13 +27,13 @@ DEFINICIONES
   escribir A
   entero a,b
   real c
-  cadena d; # Error ; 
+  cadena d  # Error ; 
   posicion f
   
   #Error
 
   K0 = 2
-  K1 = "Final"; #Error
+  K1 = "Final" #Error
   
 # CONFIGURACION
 
@@ -62,3 +62,4 @@ EJEMPLOS
         sur K0 * 3
         escribir "Final"
     finejemplo
+    
