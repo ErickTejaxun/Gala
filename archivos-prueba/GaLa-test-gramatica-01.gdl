@@ -43,6 +43,7 @@ DEFINICIONES # BLOQUE 1
     C5 = C1 + 2
     C6 = C2 - 1.1
     C7 = <C1,C1-2>
+    
 
 CONFIGURACION # BLOQUE 2
   

@@ -46,6 +46,21 @@ class Error
 };
 
 
+class listaId
+{
+    public:
+        vector<string> data;
+        int linea ;
+        listaId(int l)
+        {
+            linea = l;
+        }
+        void add(string s)
+        {
+            data.push_back(s);
+        }   
+};
+
 class Type
 {        
     public:
@@ -103,7 +118,16 @@ class simbolo
         Type getTipo(Entorno *e){ return tipo;}    
 
         /*Manejo de consantes*/
-        bool constante = false;        
+        bool constante = false;
+        bool esConstante(){return constante;}
+        string rol()
+        {
+            if(constante)
+            {
+                return "Constante";
+            }
+            return "Variable";
+        }
 };
 
 
@@ -114,29 +138,33 @@ class TablaSimbolos
         //string tipos[4] = {"TIPOENTERO","TIPOREAL","lógico","TIPOERROR"};    
         string getCadenaData()
         {
-            string TIPOCADENA = "Nombre\t\tTipo\t\tValor";            
+            string DATACADENA = "Nombre\t\tTipo\t\tValor";            
             map<string, simbolo>::iterator item;
             for(item = tabla.begin(); item != tabla.end(); item++)
             {
                 switch (item->second.tipo.getTipo())
                 {
-                    case 0:
-                        TIPOCADENA = TIPOCADENA + "\n"+item->second.id +"\t\t\t"+item->second.tipo.getNombre()+"\t\t\t"
+                    case TIPOENTERO:
+                        DATACADENA = DATACADENA + "\n"+item->second.id +"\t\t\t"+item->second.tipo.getNombre()+"\t\t\t"
                         +to_string(item->second.valor_entero);
                         break;                
-                    case 1:
-                        TIPOCADENA = TIPOCADENA + "\n"+item->second.id +"\t\t\t"+item->second.tipo.getNombre()+"\t\t\t"
+                    case TIPOREAL:
+                        DATACADENA = DATACADENA + "\n"+item->second.id +"\t\t\t"+item->second.tipo.getNombre()+"\t\t\t"
                         +to_string(item->second.valor_real);
                         break;                
-                    case 2:
-                        TIPOCADENA = TIPOCADENA + "\n"+item->second.id +"\t\t\t"+item->second.tipo.getNombre()+"\t\t\t"
+                    case TIPOLOGICO:
+                        DATACADENA = DATACADENA + "\n"+item->second.id +"\t\t\t"+item->second.tipo.getNombre()+"\t\t\t"
                         +item->second.getCadenaLogico();
-                        break;                                                        
+                        break;   
+                    case TIPOCADENA:
+                        DATACADENA = DATACADENA + "\n"+item->second.id +"\t\t\t"+item->second.tipo.getNombre()+"\t\t\t"
+                        +item->second.valor_cadena;
+                        break;                       
                     default:
                         break;
                 }                
             }
-            return TIPOCADENA;
+            return DATACADENA;
         }
 
         simbolo * obtenerSimbolo(string id, int linea)
@@ -147,13 +175,22 @@ class TablaSimbolos
                 simbolo *tmp = & it->second;     
                 return tmp;            
             }
-
             simbolo *tmp = new simbolo();
             tmp->tipo.setTipo(TIPOERROR);
             Error::registrarErrorSemantico(linea, linea, id, "Símbolo " +id+" no encontrado en el entorno actual.");                
-            return tmp;
-            
-        }        
+            return tmp;            
+        }   
+
+        simbolo * obtenerSimboloLocal(string id, int linea)
+        {                        
+            auto it = tabla.find(id);            
+            if (it != tabla.end())
+            {
+                simbolo *tmp = & it->second;     
+                return tmp;            
+            }            
+            return NULL;            
+        }              
 
         int insertarSimbolo(simbolo *s)
         {                           
@@ -164,48 +201,58 @@ class TablaSimbolos
             simb.tipo= Type(s->tipo.tipo);
             switch (s->tipo.getTipo())
             {
-                case 0:      
+                case TIPOENTERO:
                     simb.valor_entero = s->valor_entero;                                  
                     break;
-                case 1:                    
+                case TIPOREAL:           
                     simb.valor_real = s->valor_real;                    
                     break;       
-                case 2:                    
+                case TIPOLOGICO:             
                     simb.valor_booleano = s->valor_booleano;
-                    break;                                                       
-            }     
+                    break;   
+                case TIPOCADENA:
+                    simb.valor_cadena = s->valor_cadena;
+                    break;
+                case TIPOPOSICION:
+                    simb.valor_posicion[0] = s->valor_posicion[0];
+                    simb.valor_posicion[1] = s->valor_posicion[1];
+                    break;                                                                    
+            }  
+
             /*Vemos si existe el símbolo*/
-            auto it = tabla.find(s->id);            
-            if (it != tabla.end())
+            simbolo *tmp = obtenerSimboloLocal(s->id, s->linea);         
+            if(tmp!=NULL)
             {
-                /*Si existe verificamos el tipo y actualizamos el valor*/
-                if(s->tipo.getTipo() == it->second.tipo.getTipo())
+                Error::registrarErrorSemantico(s->linea, s->columna, s->id,                         
+                    "La "+s->rol() +" "+s->id+" ya ha sido declarada");
+                return 0;
+            }                        
+            tabla.insert( pair<string,simbolo>(s->id,simb));
+            return 1;
+        }
+
+
+        int actualizarSimbolo(simbolo *s)
+        {
+            simbolo *tmp = obtenerSimbolo(s->id, s->linea);
+            if(tmp!=NULL)
+            {
+                if(!tmp->constante)
                 {
-                    switch (s->tipo.getTipo())
-                    {
-                        case 0:      
-                            it->second.valor_entero = s->valor_entero;                                  
-                            break;
-                        case 1:                    
-                            it->second.valor_real = s->valor_real;                    
-                            break;       
-                        case 2:                    
-                            it->second.valor_booleano = s->valor_booleano;
-                            break;                                                       
-                    } 
+                    Error::registrarErrorSemantico(s->linea, s->columna, s->id,                         
+                        "El valor del símbolo " +s->id+ " es constante ");
                 }
+                if(s->tipo.tipo == tmp->tipo.tipo)
+                {
+                    s->linea = tmp->linea;
+                    tmp = s;
+                }           
                 else
                 {
                     Error::registrarErrorSemantico(s->linea, s->columna, s->id,                         
-                        "La variable " +s->id+ " es de tipo " +it->second.tipo.getNombre()+", Error tratando de asignar un valor de tipo " +s->tipo.getNombre());                
-                }
+                        "La variable " +s->id+ " es de tipo " +tmp->tipo.getNombre()+", Error tratando de asignar un valor de tipo " +s->tipo.getNombre());                    
+                } 
             }
-            else
-            {
-                /*Si no existe lo insertamos.*/
-                tabla.insert( pair<string,simbolo>(s->id,simb));
-            }                    
-            
         }
 };
 
@@ -1047,8 +1094,67 @@ class Escribir: public Instruccion
                     break;                                                                      
             }            
         }       
-
 };
+
+
+class Declaracion: public Instruccion
+{
+    public:
+        listaId *lista;
+        Type tipo;        
+        Declaracion(int l, int c, Type t, listaId *ids)
+        {
+            linea = l;
+            columna = c;
+            tipo = t;
+            lista = ids;
+        }
+
+        void ejecutar(Entorno *e)override
+        {     
+            for (auto id : lista->data)
+            {                
+                simbolo *tmp = new simbolo();
+                tmp->linea = linea;
+                tmp->columna = columna;
+                tmp->tipo = tipo;
+                tmp->id = id;
+                e->tabla.insertarSimbolo(tmp);
+            }            
+        }       
+};
+
+class Constante: public Instruccion
+{
+    public:
+        string id; 
+        Expresion *expr;      
+        Constante(int l, int c, string i, Expresion *e)
+        {   
+            id = i;
+            linea = l;
+            columna = c;
+            expr = e;            
+        }
+
+        void ejecutar(Entorno *e)override
+        {                 
+            simbolo tmp = expr->getValor(e);                                  
+            if(!tmp.tipo.esError())
+            {                
+                tmp.constante = true;
+                tmp.id = id;
+                if(e->tabla.insertarSimbolo(&tmp))
+                {
+                    if(tmp.tipo.esCadena())
+                    {
+                        cout<<tmp.valor_cadena<<endl;
+                    }
+                }
+            }
+        }       
+};
+
 
 
 

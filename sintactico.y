@@ -21,10 +21,8 @@ Entorno global = new Entorno(NULL);
 
 //definición de procedimientos auxiliares
 void yyerror(const char* s)
-{         /*    llamada por cada error sintactico de yacc */
+{
       listaErrores.push_back(Error(n_lineas, n_lineas, string("Sintáctico"), string(s),string(s)));
-	//cout << "Error sintáctico en línea "<< n_lineas<<": "<< s <<endl;	      
-      //fprintf (stderr, "%s\n", s);
 } 
 
 %}
@@ -39,6 +37,8 @@ void yyerror(const char* s)
       bool valor_booleano;   
       Expresion *expresion;
       Instruccion *instruccion;
+      listaId * lista_id;
+      Type * tipo;
 } 
 
 %start programa;
@@ -63,10 +63,16 @@ void yyerror(const char* s)
 %token MAYORIGUAL MENORIGUAL
 %token AND OR
 %token <valor_booleano> VERDADERO FALSO
-
-
-%type <instruccion> escribir
 %type <expresion> expr coodernada
+
+
+%type <instruccion> escribir declaracion constante
+
+
+
+
+%type <lista_id> listaid;
+%type <tipo> tipo;
 
 %right '!'
 %left AND OR
@@ -84,57 +90,56 @@ void yyerror(const char* s)
 
 programa: 
         definiciones configuracion obstaculos ejemplos 
-      | separador definiciones configuracion obstaculos ejemplos {/*Produccion para manejar los espacios en blanco al inicio*/}
-      | separador configuracion obstaculos ejemplos              {/*Produccion para manejar los espacios en blanco al inicio*/}
+      | '\n' definiciones configuracion obstaculos ejemplos {/*Produccion para manejar los espacios en blanco al inicio*/}
+      | '\n' configuracion obstaculos ejemplos              {/*Produccion para manejar los espacios en blanco al inicio*/}
       | configuracion obstaculos ejemplos 
       /*Producciones sin apartado de configuración*/
       | definiciones  obstaculos ejemplos 
-      | separador definiciones  obstaculos ejemplos               {/*Produccion para manejar los espacios en blanco al inicio*/}
-      | separador  obstaculos ejemplos                            {/*Produccion para manejar los espacios en blanco al inicio*/}
+      | '\n' definiciones  obstaculos ejemplos               {/*Produccion para manejar los espacios en blanco al inicio*/}
+      | '\n'  obstaculos ejemplos                            {/*Produccion para manejar los espacios en blanco al inicio*/}
       | obstaculos ejemplos  
-      | error separador {yyerrok;}  
+      | error '\n' {yyerrok;}  
       ;
 
 definiciones: 
-      DEFINICIONES separador ldefinicion;
+      DEFINICIONES '\n' ldefinicion;
 
 ldefinicion: 
        ldefinicion declaracion
       |ldefinicion constante
-      |ldefinicion escribir separador
-      |ldefinicion error separador {yyerrok;}
+      |ldefinicion escribir '\n'
+      |ldefinicion error '\n' {yyerrok;}
       |constante 
       |declaracion 
-      |escribir separador
-      |error separador {yyerrok;}
+      |escribir '\n'
+      |error '\n' {yyerrok;}
 ;
 
-separador: '\n';
 
 
 declaracion:
-      tipo listaid separador
+      tipo listaid '\n'  {$$ = new Declaracion(n_lineas, n_lineas, *$1, $2); $$->ejecutar(&global);}
       ;
 
-tipo:  TENTERO
-      |TCADENA
-      |TPOSICION
-      |TREAL
+tipo:  TENTERO    {$$= new Type(TIPOENTERO);} 
+      |TCADENA    {$$= new Type(TIPOCADENA);}
+      |TPOSICION  {$$= new Type(TIPOPOSICION);}
+      |TREAL      {$$= new Type(TIPOREAL);}
 ;
 
 listaid: 
-      listaid ',' ID
-      |ID
+      listaid ',' ID { $$=$1;  string id($3); $$->add(id);}
+      |ID {listaId *l = new listaId(n_lineas); string id($1); l->add(id); $$=l; }
 ;
 
 constante:
-      ID '=' expr  separador              {}
-     |ID '=' coodernada  separador        {}
+      ID '=' expr  '\n'              { string id($1); $$= new Constante(n_lineas, n_lineas, id, $3); $$->ejecutar(&global);}
+     |ID '=' coodernada  '\n'        { string id($1); $$= new Constante(n_lineas, n_lineas, id, $3); $$->ejecutar(&global);}
 ;
 
 
 configuracion:
-      CONFIGURACION separador lconfiguracion
+      CONFIGURACION '\n' lconfiguracion
 ;
 
 lconfiguracion: 
@@ -143,37 +148,37 @@ lconfiguracion:
       | lconfiguracion salida
       | lconfiguracion pausa
       | lconfiguracion escribir
-      | lconfiguracion error separador {yyerrok; }
+      | lconfiguracion error '\n' {yyerrok; }
       | dimension 
       | entrada
       | salida
       | pausa
       | escribir
-      | error separador {yyerrok; }
+      | error '\n' {yyerrok; }
 ;
 
 
 dimension:
-      DIMENSION expr separador
+      DIMENSION expr '\n'
 ;
 
 entrada: 
-      ENTRADA expr separador
-     |ENTRADA coodernada separador
+      ENTRADA expr '\n'
+     |ENTRADA coodernada '\n'
 ;
 
 salida:
-      SALIDA expr separador
-     |SALIDA coodernada separador
+      SALIDA expr '\n'
+     |SALIDA coodernada '\n'
 ;
 
 pausa:
-      PAUSA expr separador
+      PAUSA expr '\n'
 ;
 
 /*-------------------------OBSTACULOS--------------------------------*/
 obstaculos:
-      OBSTACULOS separador lobstaculos
+      OBSTACULOS '\n' lobstaculos
 ;
 
 lobstaculos:
@@ -182,35 +187,35 @@ lobstaculos:
 ;
 
 obstaculo:
-       OBSTACULO expr separador
-      |OBSTACULO coodernada separador
-      |OBSTACULO separador
-      |SUR expr separador
-      |NORTE expr separador
-      |OESTE expr separador
-      |ESTE expr separador
+       OBSTACULO expr '\n'
+      |OBSTACULO coodernada '\n'
+      |OBSTACULO '\n'
+      |SUR expr '\n'
+      |NORTE expr '\n'
+      |OESTE expr '\n'
+      |ESTE expr '\n'
       |constante
-      |escribir separador
-      |repetir separador
-      |si separador
-      | error separador {yyerrok; }
+      |escribir '\n'
+      |repetir '\n'
+      |si '\n'
+      | error '\n' {yyerrok; }
 ;
 
 
 
 ejemplos:
-      EJEMPLOS separador lejemplos
+      EJEMPLOS '\n' lejemplos
 ;
 
 lejemplos:
        lejemplos ejemplo
-      |lejemplos error separador {yyerrok;}
+      |lejemplos error '\n' {yyerrok;}
       |ejemplo 
       |error {yyerrok;}
 ;
 
 ejemplo:
-      EJEMPLO ID separador bloque FINEJEMPLO separador
+      EJEMPLO ID '\n' bloque FINEJEMPLO '\n'
 ;
 
 bloque:
@@ -224,12 +229,12 @@ instruccion:
 ;
 
 repetir:
-      REPITE expr separador bloque FINREPITE
+      REPITE expr '\n' bloque FINREPITE 
 ;
 
 si:
-      SI expr separador ENTONCES separador bloque %prec SI_SIMPLE FINSI
-     |SI expr separador ENTONCES separador bloque SINO separador  bloque FINSI
+      SI expr '\n' ENTONCES '\n' bloque %prec SI_SIMPLE FINSI
+     |SI expr '\n' ENTONCES '\n' bloque SINO '\n'  bloque FINSI
 ;
 
 
@@ -240,8 +245,8 @@ coodernada:
 
 
 escribir:
-      ESCRIBIR expr           {  $$ = new Escribir(n_lineas, n_lineas, $2);  /*$$->ejecutar(&global);*/ }
-    | ESCRIBIR coodernada     {  $$ = new Escribir(n_lineas, n_lineas, $2);  /*$$->ejecutar(&global);*/ }
+      ESCRIBIR expr           {  $$ = new Escribir(n_lineas, n_lineas, $2); $$->ejecutar(&global); }
+    | ESCRIBIR coodernada     {  $$ = new Escribir(n_lineas, n_lineas, $2); $$->ejecutar(&global); }
 ;
 
 expr:    NUMERO 		      { $$ = new Literal(n_lineas,n_lineas, $1); }
@@ -303,6 +308,7 @@ int main(int argc, char *argv[])
                   }
             }
             cout<<"--------------------------------------------------------------------"<<endl;
+            cout<<global.tabla.getCadenaData()<<endl;
             /*Ahora imprimimos todos los errores*/
             for(auto e: listaErrores)
             {
