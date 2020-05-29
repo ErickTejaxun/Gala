@@ -19,6 +19,8 @@ NodoAST *raiz;
 vector<Error> listaErrores;
 Entorno global = new Entorno(NULL);
 
+
+
 //definición de procedimientos auxiliares
 void yyerror(const char* s)
 {
@@ -56,6 +58,7 @@ void yyerror(const char* s)
 %token EJEMPLO FINEJEMPLO
 /*Ciclos.*/
 %token REPITE FINREPITE SI ENTONCES FINSI SINO
+/*Fin*/
 
 %token <valor_entero> NUMERO
 %token <valor_real> REAL
@@ -68,10 +71,10 @@ void yyerror(const char* s)
 
 
 %type <instruccion> escribir declaracion constante asignacion
-%type <instruccion> si instruccion
-%type <bloque_instrucciones> bloque
+%type <instruccion> si instruccion repetir
+%type <bloque_instrucciones> bloque lobstaculos obstaculos
 
-
+%type <instruccion> obstaculo 
 
 
 %type <lista_id> listaid;
@@ -91,7 +94,7 @@ void yyerror(const char* s)
 
 %%
 
-programa: 
+programa:
         definiciones configuracion obstaculos ejemplos 
       | '\n' definiciones configuracion obstaculos ejemplos {/*Produccion para manejar los espacios en blanco al inicio*/}
       | '\n' configuracion obstaculos ejemplos              {/*Produccion para manejar los espacios en blanco al inicio*/}
@@ -162,7 +165,7 @@ lconfiguracion:
 
 
 dimension:
-      DIMENSION expr '\n'
+      DIMENSION expr '\n' {}
 ;
 
 entrada: 
@@ -179,29 +182,32 @@ pausa:
       PAUSA expr '\n'
 ;
 
+
 /*-------------------------OBSTACULOS--------------------------------*/
 obstaculos:
-      OBSTACULOS '\n' lobstaculos
+      OBSTACULOS '\n' lobstaculos {$$= $3;}
 ;
 
 lobstaculos:
-      lobstaculos obstaculo 
-      |obstaculo
+       lobstaculos obstaculo  {$$= $1; $$->addInstruccion($2);}
+      |obstaculo              {$$= new Bloque(n_lineas,n_lineas); $$->addInstruccion($1);}
 ;
 
 obstaculo:
-       OBSTACULO expr '\n'
-      |OBSTACULO coodernada '\n'
-      |OBSTACULO '\n'
-      |SUR expr '\n'
-      |NORTE expr '\n'
-      |OESTE expr '\n'
-      |ESTE expr '\n'
-      |asignacion '\n'
-      |escribir '\n'
-      |repetir '\n'
-      |si '\n'
-      | error '\n' {yyerrok; }
+       OBSTACULO expr '\n'          {$$= new PonerObstaculo(n_lineas, n_lineas, $2);}
+      |OBSTACULO coodernada '\n'    {$$= new PonerObstaculo(n_lineas, n_lineas, $2);}
+      |OBSTACULO '\n'               {Literal *tmp = NULL; 
+                                    $$= new PonerObstaculo(n_lineas, n_lineas, tmp);
+                                    }
+      |SUR expr '\n'                {$$=new Obstaculo_movimiento(n_lineas, n_lineas, "sur", $2);}
+      |NORTE expr '\n'              {$$=new Obstaculo_movimiento(n_lineas, n_lineas, "norte", $2);}
+      |OESTE expr '\n'              {$$=new Obstaculo_movimiento(n_lineas, n_lineas, "oeste", $2);}
+      |ESTE expr '\n'               {$$= new Obstaculo_movimiento(n_lineas, n_lineas, "este", $2);}      
+      |asignacion '\n'              {$$=$1;}      
+      |escribir '\n'                {$$=$1;}
+      |repetir '\n'                 {$$=$1;}
+      |si '\n'                      {$$=$1;}
+      | error '\n'                  {yyerrok; }
 ;
 
 asignacion:
@@ -230,23 +236,21 @@ bloque:
       |instruccion            {$$= new Bloque(n_lineas,n_lineas); $$->addInstruccion($1);}
 ;
 
-instruccion:
-       obstaculo  
+instruccion: obstaculo  {$$=$1;}
 ;
 
 repetir:
-      REPITE expr '\n' bloque FINREPITE 
+      REPITE expr '\n' bloque FINREPITE { $$ = new Repetir(n_lineas, n_lineas, $2, $4);}
 ;
 
 si:
-      SI expr '\n' ENTONCES '\n' bloque %prec SI_SIMPLE FINSI   {Si *sinosi =NULL; $$ = new Si(n_lineas, n_lineas, $2, $6, sinosi); $$->ejecutar(&global); }
+      SI expr '\n' ENTONCES '\n' bloque %prec SI_SIMPLE FINSI   {Si *sinosi =NULL; $$ = new Si(n_lineas, n_lineas, $2, $6, sinosi); }
      |SI expr '\n' ENTONCES '\n' bloque SINO '\n'  bloque FINSI 
       {
             Literal *condicionTrue = new Literal(n_lineas,n_lineas, true);
             Si *sinosiAux = NULL;
             Si *sinosi = new Si(n_lineas, n_lineas, condicionTrue, $9, sinosiAux);
-            $$ = new Si(n_lineas, n_lineas, $2, $6, sinosi);
-            $$->ejecutar(&global);
+            $$ = new Si(n_lineas, n_lineas, $2, $6, sinosi);            
       }
 ;
 
@@ -307,6 +311,7 @@ int main(int argc, char *argv[])
             }
 
             printf("\nComenzando el analisis.\n");
+            global.iniciarTableroEntorno();
             cout<<"--------------------------------------------------------------------"<<endl;
             yyparse();
             if(raiz == NULL)

@@ -14,12 +14,13 @@ Teoría de Lenguajes UEx 2020
 #include <vector>
 
 
-
 using namespace std;
 class Expresion;
 class Entorno;
 class Error;
 
+
+/* Variables globales de configuración del tablero*/
 extern vector<Error> listaErrores;
 
 
@@ -295,8 +296,22 @@ class Entorno
         {
             padre = p;
             tabla = TablaSimbolos();
-        }   
-             
+            if(padre==NULL)
+            {
+                iniciarTableroEntorno();
+            }
+        }     
+        void iniciarTableroEntorno()
+        {
+            simbolo *tamano_tab = new simbolo("TAMANO_TABLERO_INIT",10, 0,0);            
+            simbolo *entrada_tablero = new simbolo("ENTRADA_TABLERO_INIT",0,0,0,0);
+            simbolo *salida_tablero = new simbolo("SALIDA_TABLERO_INIT",0,0,9,9);
+            simbolo *posicion_relativa = new simbolo("POSICION_RELATIVA_OBSTACULO",10, 1,0); 
+            tabla.insertarSimbolo(tamano_tab);
+            tabla.insertarSimbolo(entrada_tablero);
+            tabla.insertarSimbolo(salida_tablero);
+            tabla.insertarSimbolo(posicion_relativa);
+        }           
 };
 
 /*Clase NodoAST es una clase abstracta que nos permitirá definir las principales operaciones
@@ -1272,6 +1287,163 @@ class Si: public Instruccion
                 "Error en sentencia IF, la condición debe devolver un valor lógico.");                 
             }
         } 
+};
+
+
+class Repetir: public Instruccion
+{
+    public:
+        Bloque* instrucciones;
+        Expresion* condicion;        
+        Repetir(int l, int c, Expresion *e, Bloque *ins)
+        {
+            linea = l;
+            columna = c;
+            instrucciones = ins;
+            condicion = e;            
+        }
+        
+        void ejecutar(Entorno *e)override
+        {                 
+            simbolo valor = condicion->getValor(e);
+            if(valor.tipo.esLogico())
+            {         
+                bool condicionflag = valor.valor_booleano;       
+                while(condicion)
+                {
+                    instrucciones->ejecutar(e);                    
+                    condicionflag = condicion->getValor(e).valor_booleano;
+                }            
+            }
+            else
+            {
+                Error::registrarErrorSemantico(linea, columna," " ,
+                "Error en sentencia Repetir, la condición debe devolver un valor lógico.");                 
+            }
+        } 
+};
+
+class Obstaculo_movimiento: public Instruccion
+{
+    public:
+        string movimiento;
+        Expresion *expr;
+        Obstaculo_movimiento(int l, int c, string mov, Expresion *e)
+        {
+            linea = l;
+            columna = c;
+            movimiento = mov;
+            expr = e;
+        } 
+        void ejecutar(Entorno *e)override
+        {
+            simbolo valor = expr->getValor(e);
+            if(valor.tipo.esNumerico())
+            {                
+                int valorMovimiento = 0;
+                if(valor.tipo.esEntero()){ valorMovimiento = valor.valor_entero;}
+                else{ valorMovimiento = valor.valor_real;}
+
+                simbolo *posicion_obstaculo = e->tabla.obtenerSimboloLocal("POSICION_RELATIVA_OBSTACULO", linea);
+                int y = posicion_obstaculo->valor_posicion[0];
+                int x = posicion_obstaculo->valor_posicion[1];
+                int maximo = e->tabla.obtenerSimboloLocal("TAMANO_TABLERO_INIT", linea)->valor_entero;
+                if(movimiento=="oeste")
+                {
+                    if(( x + valorMovimiento) < maximo)
+                    {
+                        posicion_obstaculo->valor_posicion[1] = x + valorMovimiento;
+                    }  
+                    else
+                    {
+                        Error::registrarErrorSemantico(linea, columna," " ,
+                        "Error: Instruccion "+movimiento + ": El valor debe ser menor al tamaño máximo del tablero. "); 
+                    }              
+                }
+                else
+                if(movimiento=="este")
+                {
+                    if(( x + valorMovimiento) > 0)
+                    {
+                        posicion_obstaculo->valor_posicion[1] = x - valorMovimiento;
+                    }              
+                    else
+                    {
+                        Error::registrarErrorSemantico(linea, columna," " ,
+                        "Error: Instruccion "+movimiento + ": El valor debe ser mayor a 0."); 
+                    }                                    
+                }
+                else
+                if(movimiento=="norte")
+                {
+                    if(( y - valorMovimiento) > 0)
+                    {
+                        posicion_obstaculo->valor_posicion[0] = y - valorMovimiento;
+                    }  
+                    else
+                    {
+                        Error::registrarErrorSemantico(linea, columna," " ,
+                        "Error: Instruccion "+movimiento + ": El valor debe ser mayor a 0."); 
+                    }                     
+                }
+                else
+                if(movimiento=="sur")
+                {
+                    if(( y + valorMovimiento) < maximo)
+                    {
+                        posicion_obstaculo->valor_posicion[0] = y + valorMovimiento;
+                    } 
+                    else
+                    {
+                        Error::registrarErrorSemantico(linea, columna," " ,
+                        "Error: Instruccion "+movimiento + ": El valor debe ser menor al tamaño máximo del tablero. "); 
+                    }                        
+                }                                
+            }
+            else
+            {
+                Error::registrarErrorSemantico(linea, columna," " ,
+                "El valor asociado a la instruaccion '"+movimiento+"' debe ser númerico.");                
+            }
+        }
+};
+
+class PonerObstaculo: public Instruccion
+{
+    public:
+        Expresion *expr;
+        PonerObstaculo(int l, int c, Expresion *e)
+        {
+            linea = l;
+            columna = c;
+            expr  = e;
+        }
+
+        void ejecutar(Entorno *e)override
+        {
+            if(expr!=NULL)
+            /*En este caso significa que hay que dibujar en la posición relativa.*/
+            {
+                simbolo *posicion_obstaculo = e->tabla.obtenerSimboloLocal("POSICION_RELATIVA_OBSTACULO", linea);
+                if(posicion_obstaculo!=NULL)
+                {
+                    /*Aquí escribimos el código para posicionar un obstaculo en esta posicion*/
+                }
+            }
+            else
+            {
+                simbolo valor = expr->getValor(e);
+                if(valor.tipo.esPosicion())
+                {
+                    /*Aquí escribimos el código para posicionar un obstaculo en esta posicion*/
+                }
+                else                
+                {
+                    /* Reportar error semantico*/
+                }
+            }
+        }
+
 };
 
 
