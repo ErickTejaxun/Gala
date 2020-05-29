@@ -1208,6 +1208,72 @@ class Asignacion: public Instruccion
         }       
 };
 
+class Bloque: public Instruccion
+{
+    public:
+        vector<Instruccion*> instrucciones;
+        Bloque(int l, int c)
+        {
+            linea = l;
+            columna = c;
+        }
+
+        void addInstruccion(Instruccion *inst)
+        {
+            instrucciones.push_back(inst);
+        }
+
+        void ejecutar(Entorno *e)override
+        {                 
+            //cout<<"Hay "<< instrucciones.size() <<" instrucciones"<<endl;
+            for (unsigned i=0; i<instrucciones.size(); i++)
+            {
+                instrucciones.at(i)->ejecutar(e);
+            }                
+        } 
+};
+
+
+class Si: public Instruccion
+{
+    public:
+        Bloque* instrucciones;
+        Expresion* condicion;
+        Si* SinoSi;
+        Si(int l, int c, Expresion *e, Bloque *ins, Si *elseNodo)
+        {
+            linea = l;
+            columna = c;
+            instrucciones = ins;
+            condicion = e;
+            SinoSi = elseNodo;
+        }
+        
+        void ejecutar(Entorno *e)override
+        {                 
+            simbolo valor = condicion->getValor(e);
+            if(valor.tipo.esLogico())
+            {                
+                if(valor.valor_booleano)
+                {
+                    instrucciones->ejecutar(e);
+                }                
+                else
+                {
+                    if(SinoSi!=NULL)
+                    {
+                        SinoSi->ejecutar(e);
+                    }                    
+                }
+            }
+            else
+            {
+                Error::registrarErrorSemantico(linea, columna," " ,
+                "Error en sentencia IF, la condición debe devolver un valor lógico.");                 
+            }
+        } 
+};
+
 
 
 

@@ -39,6 +39,7 @@ void yyerror(const char* s)
       Instruccion *instruccion;
       listaId * lista_id;
       Type * tipo;
+      Bloque * bloque_instrucciones;
 } 
 
 %start programa;
@@ -67,6 +68,8 @@ void yyerror(const char* s)
 
 
 %type <instruccion> escribir declaracion constante asignacion
+%type <instruccion> si instruccion
+%type <bloque_instrucciones> bloque
 
 
 
@@ -118,7 +121,7 @@ ldefinicion:
 
 
 declaracion:
-      tipo listaid '\n'  {$$ = new Declaracion(n_lineas, n_lineas, *$1, $2); $$->ejecutar(&global);}
+      tipo listaid '\n'  {$$ = new Declaracion(n_lineas, n_lineas, *$1, $2); }
       ;
 
 tipo:  TENTERO    {$$= new Type(TIPOENTERO);} 
@@ -128,13 +131,13 @@ tipo:  TENTERO    {$$= new Type(TIPOENTERO);}
 ;
 
 listaid: 
-      listaid ',' ID { $$=$1;  string id($3); $$->add(id);}
-      |ID {listaId *l = new listaId(n_lineas); string id($1); l->add(id); $$=l; }
+      listaid ',' ID    { $$=$1;  string id($3); $$->add(id);}
+      |ID               {listaId *l = new listaId(n_lineas); string id($1); l->add(id); $$=l; }
 ;
 
 constante:
-      ID '=' expr  '\n'              { string id($1); $$= new Constante(n_lineas, n_lineas, id, $3); $$->ejecutar(&global);}
-     |ID '=' coodernada  '\n'        { string id($1); $$= new Constante(n_lineas, n_lineas, id, $3); $$->ejecutar(&global);}
+      ID '=' expr  '\n'              { string id($1); $$= new Constante(n_lineas, n_lineas, id, $3); }
+     |ID '=' coodernada  '\n'        { string id($1); $$= new Constante(n_lineas, n_lineas, id, $3); }
 ;
 
 
@@ -194,7 +197,7 @@ obstaculo:
       |NORTE expr '\n'
       |OESTE expr '\n'
       |ESTE expr '\n'
-      |asignacion
+      |asignacion '\n'
       |escribir '\n'
       |repetir '\n'
       |si '\n'
@@ -202,8 +205,8 @@ obstaculo:
 ;
 
 asignacion:
-      ID '=' expr  '\n'              { string id($1); $$= new Asignacion(n_lineas, n_lineas, id, $3); $$->ejecutar(&global);}
-     |ID '=' coodernada  '\n'        { string id($1); $$= new Asignacion(n_lineas, n_lineas, id, $3); $$->ejecutar(&global);}
+      ID '=' expr                { string id($1); $$= new Asignacion(n_lineas, n_lineas, id, $3); }
+     |ID '=' coodernada          { string id($1); $$= new Asignacion(n_lineas, n_lineas, id, $3); }
 ;
 
 
@@ -223,13 +226,12 @@ ejemplo:
 ;
 
 bloque:
-       bloque instruccion
-      |instruccion 
+       bloque instruccion     {$$= $1; $$->addInstruccion($2);}
+      |instruccion            {$$= new Bloque(n_lineas,n_lineas); $$->addInstruccion($1);}
 ;
 
 instruccion:
-       obstaculo
-      
+       obstaculo  
 ;
 
 repetir:
@@ -237,8 +239,15 @@ repetir:
 ;
 
 si:
-      SI expr '\n' ENTONCES '\n' bloque %prec SI_SIMPLE FINSI
-     |SI expr '\n' ENTONCES '\n' bloque SINO '\n'  bloque FINSI
+      SI expr '\n' ENTONCES '\n' bloque %prec SI_SIMPLE FINSI   {Si *sinosi =NULL; $$ = new Si(n_lineas, n_lineas, $2, $6, sinosi); $$->ejecutar(&global); }
+     |SI expr '\n' ENTONCES '\n' bloque SINO '\n'  bloque FINSI 
+      {
+            Literal *condicionTrue = new Literal(n_lineas,n_lineas, true);
+            Si *sinosiAux = NULL;
+            Si *sinosi = new Si(n_lineas, n_lineas, condicionTrue, $9, sinosiAux);
+            $$ = new Si(n_lineas, n_lineas, $2, $6, sinosi);
+            $$->ejecutar(&global);
+      }
 ;
 
 
@@ -249,8 +258,8 @@ coodernada:
 
 
 escribir:
-      ESCRIBIR expr           {  $$ = new Escribir(n_lineas, n_lineas, $2); $$->ejecutar(&global); }
-    | ESCRIBIR coodernada     {  $$ = new Escribir(n_lineas, n_lineas, $2); $$->ejecutar(&global); }
+      ESCRIBIR expr           {  $$ = new Escribir(n_lineas, n_lineas, $2); /**/ }
+    | ESCRIBIR coodernada     {  $$ = new Escribir(n_lineas, n_lineas, $2); /**/ }
 ;
 
 expr:    NUMERO 		      { $$ = new Literal(n_lineas,n_lineas, $1); }

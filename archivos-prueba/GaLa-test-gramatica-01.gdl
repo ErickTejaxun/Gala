@@ -83,6 +83,14 @@ OBSTACULOS # BLOQUE 3
     escribir e0
     escribir e0 + 2   
 
+    si 1!=2 
+    entonces 
+      escribir "Si entrando"
+    sino 
+      escribir "Else entrando"
+    finsi
+    
+
 EJEMPLOS # BLOQUE 4
 
   # Tendremos 1 o más ejemplos
