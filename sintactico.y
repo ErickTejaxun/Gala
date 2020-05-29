@@ -66,7 +66,7 @@ void yyerror(const char* s)
 %type <expresion> expr coodernada
 
 
-%type <instruccion> escribir declaracion constante
+%type <instruccion> escribir declaracion constante asignacion
 
 
 
@@ -194,13 +194,17 @@ obstaculo:
       |NORTE expr '\n'
       |OESTE expr '\n'
       |ESTE expr '\n'
-      |constante
+      |asignacion
       |escribir '\n'
       |repetir '\n'
       |si '\n'
       | error '\n' {yyerrok; }
 ;
 
+asignacion:
+      ID '=' expr  '\n'              { string id($1); $$= new Asignacion(n_lineas, n_lineas, id, $3); $$->ejecutar(&global);}
+     |ID '=' coodernada  '\n'        { string id($1); $$= new Asignacion(n_lineas, n_lineas, id, $3); $$->ejecutar(&global);}
+;
 
 
 ejemplos:

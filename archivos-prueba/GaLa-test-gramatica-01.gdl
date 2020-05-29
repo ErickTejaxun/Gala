@@ -59,7 +59,7 @@ OBSTACULOS # BLOQUE 3
 
   # En este bloque pueden aparecer: asignaciones, direcciones (norte, sur, este, oeste), obstaculos (relativos y absolutos) y escribir mensajes
     
-  # Asignaciones
+  # Asignaciones    
     e0 = C1 + 2
     f1 = C2 * 2
     c1 = "Obstaculo"

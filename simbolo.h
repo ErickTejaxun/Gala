@@ -159,6 +159,10 @@ class TablaSimbolos
                     case TIPOCADENA:
                         DATACADENA = DATACADENA + "\n"+item->second.id +"\t\t\t"+item->second.tipo.getNombre()+"\t\t\t"
                         +item->second.valor_cadena;
+                        break;
+                    case TIPOPOSICION:
+                        DATACADENA = DATACADENA + "\n"+item->second.id +"\t\t\t"+item->second.tipo.getNombre()+"\t\t\t"
+                        +"x: " +to_string(item->second.valor_posicion[0]) +"   y: " +to_string(item->second.valor_posicion[1]);
                         break;                       
                     default:
                         break;
@@ -224,7 +228,7 @@ class TablaSimbolos
             if(tmp!=NULL)
             {
                 Error::registrarErrorSemantico(s->linea, s->columna, s->id,                         
-                    "La "+s->rol() +" "+s->id+" ya ha sido declarada");
+                    "La "+tmp->rol() +" "+s->id+" ya ha sido declarada");
                 return 0;
             }                        
             tabla.insert( pair<string,simbolo>(s->id,simb));
@@ -237,21 +241,45 @@ class TablaSimbolos
             simbolo *tmp = obtenerSimbolo(s->id, s->linea);
             if(tmp!=NULL)
             {
-                if(!tmp->constante)
+                if(tmp->constante)
                 {
                     Error::registrarErrorSemantico(s->linea, s->columna, s->id,                         
                         "El valor del símbolo " +s->id+ " es constante ");
+                    return -1;
                 }
                 if(s->tipo.tipo == tmp->tipo.tipo)
                 {
                     s->linea = tmp->linea;
-                    tmp = s;
+                    switch (s->tipo.getTipo())
+                    {
+                        case TIPOENTERO:
+                            tmp->valor_entero = s->valor_entero;                                  
+                            break;
+                        case TIPOREAL:           
+                            tmp->valor_real = s->valor_real;                    
+                            break;       
+                        case TIPOLOGICO:             
+                            tmp->valor_booleano = s->valor_booleano;
+                            break;   
+                        case TIPOCADENA:
+                            tmp->valor_cadena = s->valor_cadena;
+                            break;
+                        case TIPOPOSICION:
+                            tmp->valor_posicion[0] = s->valor_posicion[0];
+                            tmp->valor_posicion[1] = s->valor_posicion[1];
+                            break;                                                                    
+                    }                    
                 }           
                 else
                 {
                     Error::registrarErrorSemantico(s->linea, s->columna, s->id,                         
                         "La variable " +s->id+ " es de tipo " +tmp->tipo.getNombre()+", Error tratando de asignar un valor de tipo " +s->tipo.getNombre());                    
                 } 
+            }
+            else
+            {
+                    Error::registrarErrorSemantico(s->linea, s->columna, s->id,                         
+                        "La variable " +s->id+ " no ha sido declarada .");                   
             }
         }
 };
@@ -1116,6 +1144,7 @@ class Declaracion: public Instruccion
             {                
                 simbolo *tmp = new simbolo();
                 tmp->linea = linea;
+                tmp->constante = false;
                 tmp->columna = columna;
                 tmp->tipo = tipo;
                 tmp->id = id;
@@ -1151,6 +1180,30 @@ class Constante: public Instruccion
                         cout<<tmp.valor_cadena<<endl;
                     }
                 }
+            }
+        }       
+};
+
+class Asignacion: public Instruccion
+{
+    public:
+        string id; 
+        Expresion *expr;      
+        Asignacion(int l, int c, string i, Expresion *e)
+        {   
+            id = i;
+            linea = l;
+            columna = c;
+            expr = e;            
+        }
+
+        void ejecutar(Entorno *e)override
+        {                 
+            simbolo tmp = expr->getValor(e);                                  
+            if(!tmp.tipo.esError())
+            {                
+                tmp.id = id;
+                e->tabla.actualizarSimbolo(&tmp);
             }
         }       
 };
