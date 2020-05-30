@@ -92,7 +92,7 @@ void yyerror(const char* s)
 
 %%
 
-inicio: programa {raiz = $1; printf("Asignando la raíz, perros");}
+inicio: programa {/*raiz = $1;*/}
 ;
 
 programa:
@@ -225,14 +225,14 @@ ejemplos:
 ;
 
 lejemplos:
-       lejemplos ejemplo {$$= $1; $$->addInstruccion($2);}
-      |lejemplos error '\n' {yyerrok;}
+       lejemplos '\n' ejemplo {$$= $1; $$->addInstruccion($3);}
+      |lejemplos '\n' error '\n' {yyerrok;}
       |ejemplo  {$$= new Bloque(n_lineas, n_lineas); $$->addInstruccion($1);}
       |error {yyerrok;}
 ;
 
 ejemplo:
-      EJEMPLO ID '\n' bloque FINEJEMPLO '\n' {string id($2); $$ = new Ejemplo(n_lineas, n_lineas, id, $4);}
+      EJEMPLO ID '\n' bloque FINEJEMPLO  {string id($2); $$ = new Ejemplo(n_lineas, n_lineas, id, $4);}      
 ;
 
 bloque:
