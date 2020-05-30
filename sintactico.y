@@ -42,6 +42,7 @@ void yyerror(const char* s)
       listaId * lista_id;
       Type * tipo;
       Bloque * bloque_instrucciones;
+      Programa * programa_gala;
 } 
 
 %start inicio;
@@ -70,9 +71,10 @@ void yyerror(const char* s)
 
 %type <expresion> expr coodernada
 %type <instruccion> escribir declaracion constante asignacion
-%type <instruccion> si instruccion repetir
+%type <instruccion> si instruccion repetir 
+%type <programa_gala> programa
 %type <bloque_instrucciones> bloque lobstaculos obstaculos lconfiguracion configuracion
-%type <bloque_instrucciones> ldefinicion definiciones lejemplos ejemplos programa
+%type <bloque_instrucciones> ldefinicion definiciones lejemplos ejemplos 
 %type <instruccion> obstaculo  dimension entrada salida pausa 
 %type <instruccion> ejemplo 
 %type <lista_id> listaid;
@@ -96,16 +98,16 @@ inicio: programa {raiz = $1;}
 ;
 
 programa:
-        definiciones configuracion obstaculos ejemplos      {$$ = new Bloque(n_lineas, n_lineas);$$->addInstruccion($1); $$->addInstruccion($2); $$->addInstruccion($3); $$->addInstruccion($4);}
-      | '\n' definiciones configuracion obstaculos ejemplos {$$ = new Bloque(n_lineas, n_lineas);$$->addInstruccion($2); $$->addInstruccion($3); $$->addInstruccion($4);}
-      | '\n' configuracion obstaculos ejemplos              {$$ = new Bloque(n_lineas, n_lineas);$$->addInstruccion($2); $$->addInstruccion($3); $$->addInstruccion($4);}
-      | configuracion obstaculos ejemplos                   {$$ = new Bloque(n_lineas, n_lineas);$$->addInstruccion($1); $$->addInstruccion($2); $$->addInstruccion($3);}
+        definiciones configuracion obstaculos ejemplos      {$$ = new Programa(n_lineas, n_lineas);$$->setDefiniciones($1); $$->setConfiguraciones($2); $$->setObstaculos($3); $$->setEjemplos($4);}
+      | '\n' definiciones configuracion obstaculos ejemplos {$$ = new Programa(n_lineas, n_lineas);$$->setDefiniciones($2); $$->setConfiguraciones($3); $$->setObstaculos($4); $$->setEjemplos($5);}
+      | '\n' configuracion obstaculos ejemplos              {$$ = new Programa(n_lineas, n_lineas);$$->setConfiguraciones($2); $$->setObstaculos($3); $$->setEjemplos($4);}
+      | configuracion obstaculos ejemplos                   {$$ = new Programa(n_lineas, n_lineas);$$->setConfiguraciones($1); $$->setObstaculos($2); $$->setEjemplos($3);}
       /*--------------Producciones sin apartado de configuración---------*/
-      | definiciones  obstaculos ejemplos                   {$$ = new Bloque(n_lineas, n_lineas);$$->addInstruccion($1); $$->addInstruccion($2); $$->addInstruccion($3);}
-      | '\n' definiciones  obstaculos ejemplos               {$$ = new Bloque(n_lineas, n_lineas);$$->addInstruccion($2); $$->addInstruccion($3); $$->addInstruccion($4);}      
-      | '\n'  obstaculos ejemplos                            {$$ = new Bloque(n_lineas, n_lineas);$$->addInstruccion($2); $$->addInstruccion($3);}      
-      | obstaculos ejemplos                                  {$$ = new Bloque(n_lineas, n_lineas);$$->addInstruccion($1); $$->addInstruccion($2);}  
-      | error '\n' {yyerrok;}                                {$$ = new Bloque(n_lineas, n_lineas);}  
+      | definiciones  obstaculos ejemplos                   {$$ = new Programa(n_lineas, n_lineas);$$->setDefiniciones($1); $$->setObstaculos($2); $$->setEjemplos($3);}
+      | '\n' definiciones  obstaculos ejemplos               {$$ = new Programa(n_lineas, n_lineas);$$->setDefiniciones($2); $$->setObstaculos($3); $$->setEjemplos($4);}      
+      | '\n'  obstaculos ejemplos                            {$$ = new Programa(n_lineas, n_lineas);$$->setObstaculos($2); $$->setEjemplos($3);}      
+      | obstaculos ejemplos                                  {$$ = new Programa(n_lineas, n_lineas);$$->setObstaculos($1); $$->setEjemplos($2);}  
+      | error '\n' {yyerrok;}                                {$$ = new Programa(n_lineas, n_lineas);}  
       ;
 
 
@@ -314,9 +316,8 @@ int main(int argc, char *argv[])
                   return 0;
             }
 
-            printf("\nComenzando el analisis.\n");
             global.iniciarTableroEntorno();
-            cout<<"--------------------------------------------------------------------"<<endl;
+            cout<<"-------------------------------------------------------------------------------------"<<endl;
             yyparse();
             if(raiz == NULL)
             {
@@ -329,14 +330,14 @@ int main(int argc, char *argv[])
                         raiz->ejecutar(&global);
                   }
             }
-            cout<<"--------------------------------------------------------------------"<<endl;
+            cout<<"--------------------------Tabla de símbolos------------------------------------------"<<endl;
             cout<<global.tabla.getCadenaData()<<endl;
             /*Ahora imprimimos todos los errores*/
             for(auto e: listaErrores)
             {
                   cout<< e.getMensaje()<<endl;
             }
-            cout<<"--------------------------------------------------------------------\n"<<endl;            
+            cout<<"-------------------------------------------------------------------------------------\n"<<endl;            
             return 0;
       }     
       return 0;

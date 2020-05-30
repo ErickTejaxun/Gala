@@ -35,7 +35,7 @@ DEFINICIONES # BLOQUE 1
     
     C1 = 2
     C2 = 0.75
-    C3 = "Hola mundo"
+    C3 = "Hola mundo" 
     C4 = <2,9>          # Posición: representado mediante dos números enteros separados por una coma y encerrados entre los símbolos < y >.
     
     # También es posible utilizar expresiones aritméticas
@@ -89,7 +89,12 @@ OBSTACULOS # BLOQUE 3
     sino 
       escribir "Else entrando"
     finsi
-    
+
+    repite 5
+      e0 = e0 *2 
+      escribir e0
+    finrepite
+
 
 EJEMPLOS # BLOQUE 4
 

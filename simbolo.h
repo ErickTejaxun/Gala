@@ -139,7 +139,7 @@ class TablaSimbolos
         //string tipos[4] = {"TIPOENTERO","TIPOREAL","lógico","TIPOERROR"};    
         string getCadenaData()
         {
-            string DATACADENA = "Nombre\t\tTipo\t\tValor";            
+            string DATACADENA = "Nombre\t\t\tTipo\t\t\tValor";            
             map<string, simbolo>::iterator item;
             for(item = tabla.begin(); item != tabla.end(); item++)
             {
@@ -308,8 +308,8 @@ class Entorno
             pausa->valor_real = 0.5;
             pausa->tipo = Type(TIPOREAL);
             simbolo *entrada_tablero = new simbolo("ENTRADA_TABLERO_INIT",0,0,0,0);
-            simbolo *salida_tablero = new simbolo("SALIDA_TABLERO_INIT",0,0,9,9);
-            simbolo *posicion_relativa = new simbolo("POSICION_RELATIVA_OBSTACULO",10, 1,0); 
+            simbolo *salida_tablero = new simbolo("SALIDA_TABLERO_INIT",9,9, 0,0);
+            simbolo *posicion_relativa = new simbolo("POSICION_RELATIVA_OBSTACULO",1,0,0,0); 
             tabla.insertarSimbolo(tamano_tab);
             tabla.insertarSimbolo(pausa);
             tabla.insertarSimbolo(entrada_tablero);
@@ -1194,10 +1194,10 @@ class Constante: public Instruccion
                 tmp.id = id;
                 if(e->tabla.insertarSimbolo(&tmp))
                 {
-                    if(tmp.tipo.esCadena())
+                    /*if(tmp.tipo.esCadena())
                     {
                         cout<<tmp.valor_cadena<<endl;
-                    }
+                    }*/
                 }
             }
         }       
@@ -1389,6 +1389,7 @@ class Obstaculo_movimiento: public Instruccion
                 int y = posicion_obstaculo->valor_posicion[0];
                 int x = posicion_obstaculo->valor_posicion[1];
                 int maximo = e->tabla.obtenerSimboloLocal("TAMANO_TABLERO_INIT", linea)->valor_entero;
+                //cout<< "Aplicando movimiento "<< movimiento <<endl;
                 if(movimiento=="oeste")
                 {
                     if(( x + valorMovimiento) < maximo)
@@ -1398,33 +1399,33 @@ class Obstaculo_movimiento: public Instruccion
                     else
                     {
                         Error::registrarErrorSemantico(linea, columna," " ,
-                        "Error: Instruccion "+movimiento + ": El valor debe ser menor al tamaño máximo del tablero. "); 
+                        "Error: Instruccion "+movimiento + ": El valor debe ser menor al tamaño máximo del tablero." + to_string(x+valorMovimiento) +" > " + to_string(maximo)); 
                     }              
                 }
                 else
                 if(movimiento=="este")
                 {
-                    if(( x + valorMovimiento) > 0)
+                    if(( x + valorMovimiento) >= 0)
                     {
                         posicion_obstaculo->valor_posicion[1] = x - valorMovimiento;
                     }              
                     else
                     {
                         Error::registrarErrorSemantico(linea, columna," " ,
-                        "Error: Instruccion "+movimiento + ": El valor debe ser mayor a 0."); 
+                        "Error: Instruccion "+movimiento + ": El valor debe ser mayor a 0 (< "+ to_string(y-valorMovimiento)+")"); 
                     }                                    
                 }
                 else
                 if(movimiento=="norte")
                 {
-                    if(( y - valorMovimiento) > 0)
+                    if(( y - valorMovimiento) >= 0)
                     {
                         posicion_obstaculo->valor_posicion[0] = y - valorMovimiento;
                     }  
                     else
                     {
                         Error::registrarErrorSemantico(linea, columna," " ,
-                        "Error: Instruccion "+movimiento + ": El valor debe ser mayor a 0."); 
+                        "Error: Instruccion "+movimiento + ": El valor debe ser mayor a 0 (< "+ to_string(y-valorMovimiento)+")"); 
                     }                     
                 }
                 else
@@ -1437,7 +1438,7 @@ class Obstaculo_movimiento: public Instruccion
                     else
                     {
                         Error::registrarErrorSemantico(linea, columna," " ,
-                        "Error: Instruccion "+movimiento + ": El valor debe ser menor al tamaño máximo del tablero. "); 
+                        "Error: Instruccion "+movimiento + ": El valor debe ser menor al tamaño máximo del tablero. "  + to_string(x+valorMovimiento) +" > " + to_string(maximo)); 
                     }                        
                 }                                
             }
@@ -1462,7 +1463,8 @@ class PonerObstaculo: public Instruccion
 
         void ejecutar(Entorno *e)override
         {
-            if(expr!=NULL)
+            //printf("Poniendo objeto. \n");
+            if(expr==NULL)
             /*En este caso significa que hay que dibujar en la posición relativa.*/
             {
                 simbolo *posicion_obstaculo = e->tabla.obtenerSimboloLocal("POSICION_RELATIVA_OBSTACULO", linea);
@@ -1637,6 +1639,61 @@ class Ejemplo:public Instruccion
         void ejecutar(Entorno *e) override
         {
             /*Aquí escribimos el código para generar los movimientos*/
+        }
+
+};
+
+class Programa:public Instruccion
+{
+    public:
+        Bloque * definiciones;
+        Bloque * configuraciones;
+        Bloque * obstaculos;
+        Bloque * ejemplos;
+        Programa(int l, int c)
+        {
+            linea = l;
+            columna = c;
+        }
+
+        void setDefiniciones(Bloque *def)
+        {
+            definiciones = def;
+        }
+
+        void setConfiguraciones(Bloque *conf)
+        {
+            configuraciones  = conf;
+        }
+
+        void setObstaculos(Bloque *obs)
+        {
+            obstaculos = obs;
+        }
+
+        void setEjemplos(Bloque *ejemp)
+        {
+            ejemplos = ejemp;
+        }
+
+        void ejecutar(Entorno *e) override
+        {
+            if(definiciones!=NULL)
+            {
+                definiciones->ejecutar(e);
+            }
+            if(configuraciones!=NULL)
+            {
+                configuraciones->ejecutar(e);
+            }   
+            if(obstaculos!=NULL)
+            {
+                obstaculos->ejecutar(e);
+            }   
+            if(ejemplos!=NULL)
+            {
+                ejemplos->ejecutar(e);
+            }      
         }
 
 };
