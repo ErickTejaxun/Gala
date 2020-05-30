@@ -304,10 +304,14 @@ class Entorno
         void iniciarTableroEntorno()
         {
             simbolo *tamano_tab = new simbolo("TAMANO_TABLERO_INIT",10, 0,0);            
+            simbolo *pausa = new simbolo("PAUSA_TABLERO",0,0,0);    
+            pausa->valor_real = 0.5;
+            pausa->tipo = Type(TIPOREAL);
             simbolo *entrada_tablero = new simbolo("ENTRADA_TABLERO_INIT",0,0,0,0);
             simbolo *salida_tablero = new simbolo("SALIDA_TABLERO_INIT",0,0,9,9);
             simbolo *posicion_relativa = new simbolo("POSICION_RELATIVA_OBSTACULO",10, 1,0); 
             tabla.insertarSimbolo(tamano_tab);
+            tabla.insertarSimbolo(pausa);
             tabla.insertarSimbolo(entrada_tablero);
             tabla.insertarSimbolo(salida_tablero);
             tabla.insertarSimbolo(posicion_relativa);
@@ -1290,12 +1294,12 @@ class Si: public Instruccion
 };
 
 
-class Repetir: public Instruccion
+class Mientras: public Instruccion
 {
     public:
         Bloque* instrucciones;
         Expresion* condicion;        
-        Repetir(int l, int c, Expresion *e, Bloque *ins)
+        Mientras(int l, int c, Expresion *e, Bloque *ins)
         {
             linea = l;
             columna = c;
@@ -1318,10 +1322,47 @@ class Repetir: public Instruccion
             else
             {
                 Error::registrarErrorSemantico(linea, columna," " ,
-                "Error en sentencia Repetir, la condición debe devolver un valor lógico.");                 
+                "Error en sentencia Mientras, la condición debe devolver un valor lógico.");                 
             }
         } 
 };
+
+
+class Repetir: public Instruccion
+{
+    public:
+        Bloque* instrucciones;
+        Expresion* condicion;        
+        Repetir(int l, int c, Expresion *e, Bloque *ins)
+        {
+            linea = l;
+            columna = c;
+            instrucciones = ins;
+            condicion = e;            
+        }
+        
+        void ejecutar(Entorno *e)override
+        {                 
+            simbolo valor = condicion->getValor(e);
+            if(valor.tipo.esNumerico())
+            {         
+                int inicio = 0;
+                int limite = 0;
+                if(valor.tipo.esEntero()){limite = valor.valor_entero;}
+                if(valor.tipo.esReal()){limite = valor.valor_real;}
+                for(inicio = 0; inicio < limite; inicio++ )
+                {
+                    instrucciones->ejecutar(e);                     
+                }            
+            }
+            else
+            {
+                Error::registrarErrorSemantico(linea, columna," " ,
+                "Error en sentencia Repetir, la condición debe devolver un valor númerico entero.");                 
+            }
+        } 
+};
+
 
 class Obstaculo_movimiento: public Instruccion
 {
@@ -1446,8 +1487,159 @@ class PonerObstaculo: public Instruccion
 
 };
 
+class Establecer_dimension: public Instruccion
+{
+    public:
+        Expresion *expr;
+        Establecer_dimension(int l, int c, Expresion *e)
+        {
+            linea = l; columna = c; 
+            expr = e;
+        }
+
+        void ejecutar(Entorno *e) override
+        {
+            simbolo valor = expr->getValor(e);
+            if(!valor.tipo.esNumerico())
+            {
+                Error::registrarErrorSemantico(linea, columna," " ,
+                "El valor asociado a la instruaccion Dimensión debe ser númerico.");
+                return;                
+            }
+            else
+            {
+            	int valorTmp = 0;
+            	if(valor.tipo.esEntero())
+            	{
+            		valorTmp =valor.valor_entero;
+            	}
+            	else
+            	{
+            		valorTmp = valor.valor_real;
+            	}
+                if(valorTmp>0)
+                {
+                	simbolo *simbolo_dimension = e->tabla.obtenerSimboloLocal("TAMANO_TABLERO_INIT", linea);
+                	simbolo_dimension->valor_entero = valorTmp;
+                }
+            }
+        }
+};
+
+class Establecer_entrada: public Instruccion
+{
+    public:
+        Expresion *expr;
+        Establecer_entrada(int l, int c, Expresion *e)
+        {
+            linea = l; columna = c; 
+            expr = e;
+        }
+
+        void ejecutar(Entorno *e) override
+        {
+        	simbolo coordena = expr->getValor(e);
+        	if(!coordena.tipo.esPosicion())
+        	{
+                Error::registrarErrorSemantico(linea, columna," " ,
+                "El valor asociado a la instruaccion Entrada debe ser posición.");
+                return;
+        	}
+        	else
+        	{
+        		simbolo *simbolo_entrada = e->tabla.obtenerSimboloLocal("ENTRADA_TABLERO_INIT", linea);
+        		simbolo_entrada->valor_posicion[0] =coordena.valor_posicion[0];
+        		simbolo_entrada->valor_posicion[1] =coordena.valor_posicion[1];
+        	}
+        }
+};
 
 
+class Establecer_salida: public Instruccion
+{
+    public:
+        Expresion *expr;
+        Establecer_salida(int l, int c, Expresion *e)
+        {
+            linea = l; columna = c; 
+            expr = e;
+        }
+
+        void ejecutar(Entorno *e) override
+        {
+        	simbolo coordena = expr->getValor(e);
+        	if(!coordena.tipo.esPosicion())
+        	{
+                Error::registrarErrorSemantico(linea, columna," " ,
+                "El valor asociado a la instruaccion Salida debe ser posición.");
+                return;
+        	}
+        	else
+        	{
+        		simbolo *simbolo_dimension = e->tabla.obtenerSimboloLocal("SALIDA_TABLERO_INIT", linea);
+        		simbolo_dimension->valor_posicion[0] =coordena.valor_posicion[0];
+        		simbolo_dimension->valor_posicion[1] =coordena.valor_posicion[1];
+        	}
+        }
+};
+
+class Establecer_pausa: public Instruccion
+{
+    public:
+        Expresion *expr;
+        Establecer_pausa(int l, int c, Expresion *e)
+        {
+            linea = l; columna = c; 
+            expr = e;
+        }
+
+        void ejecutar(Entorno *e) override
+        {
+        	simbolo valor = expr->getValor(e);
+        	if(!valor.tipo.esNumerico())
+        	{
+                Error::registrarErrorSemantico(linea, columna," " ,
+                "El valor asociado a la instruaccion Salida debe ser posición.");
+                return;
+        	}
+        	else
+        	{
+            	double valorTmp = 0;
+            	if(valor.tipo.esEntero())
+            	{
+            		valorTmp =valor.valor_entero;
+            	}
+            	else
+            	{
+            		valorTmp = valor.valor_real;
+            	}
+
+        		simbolo *simbolo_pausa = e->tabla.obtenerSimboloLocal("PAUSA_TABLERO", linea);
+        		simbolo_pausa->valor_real =valorTmp;
+
+        	}
+        }
+};
+
+class Ejemplo:public Instruccion
+{
+    public:
+        string id;
+        Bloque *instrucciones;
+        Ejemplo(int l, int c, string i, Bloque * inst)
+        {
+            linea = l;
+            columna = c;
+            id = i;
+            instrucciones = inst;
+        }
+
+        void ejecutar(Entorno *e) override
+        {
+            /*Aquí escribimos el código para generar los movimientos*/
+        }
+
+};
 
 
 

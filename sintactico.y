@@ -44,7 +44,7 @@ void yyerror(const char* s)
       Bloque * bloque_instrucciones;
 } 
 
-%start programa;
+%start inicio;
 
 /*Palabras reservadas*/
 %token ESCRIBIR DEFINICIONES CONFIGURACION OBSTACULOS EJEMPLOS
@@ -67,16 +67,14 @@ void yyerror(const char* s)
 %token MAYORIGUAL MENORIGUAL
 %token AND OR
 %token <valor_booleano> VERDADERO FALSO
+
 %type <expresion> expr coodernada
-
-
 %type <instruccion> escribir declaracion constante asignacion
 %type <instruccion> si instruccion repetir
-%type <bloque_instrucciones> bloque lobstaculos obstaculos
-
-%type <instruccion> obstaculo 
-
-
+%type <bloque_instrucciones> bloque lobstaculos obstaculos lconfiguracion configuracion
+%type <bloque_instrucciones> ldefinicion definiciones lejemplos ejemplos programa
+%type <instruccion> obstaculo  dimension entrada salida pausa 
+%type <instruccion> ejemplo 
 %type <lista_id> listaid;
 %type <tipo> tipo;
 
@@ -94,30 +92,36 @@ void yyerror(const char* s)
 
 %%
 
+inicio: programa {raiz = $1; printf("Asignando la raíz, perros");}
+;
+
 programa:
-        definiciones configuracion obstaculos ejemplos 
-      | '\n' definiciones configuracion obstaculos ejemplos {/*Produccion para manejar los espacios en blanco al inicio*/}
-      | '\n' configuracion obstaculos ejemplos              {/*Produccion para manejar los espacios en blanco al inicio*/}
-      | configuracion obstaculos ejemplos 
-      /*Producciones sin apartado de configuración*/
-      | definiciones  obstaculos ejemplos 
-      | '\n' definiciones  obstaculos ejemplos               {/*Produccion para manejar los espacios en blanco al inicio*/}
-      | '\n'  obstaculos ejemplos                            {/*Produccion para manejar los espacios en blanco al inicio*/}
-      | obstaculos ejemplos  
-      | error '\n' {yyerrok;}  
+        definiciones configuracion obstaculos ejemplos      {$$ = new Bloque(n_lineas, n_lineas);$$->addInstruccion($1); $$->addInstruccion($2); $$->addInstruccion($3); $$->addInstruccion($4);}
+      | '\n' definiciones configuracion obstaculos ejemplos {$$ = new Bloque(n_lineas, n_lineas);$$->addInstruccion($2); $$->addInstruccion($3); $$->addInstruccion($4);}
+      | '\n' configuracion obstaculos ejemplos              {$$ = new Bloque(n_lineas, n_lineas);$$->addInstruccion($2); $$->addInstruccion($3); $$->addInstruccion($4);}
+      | configuracion obstaculos ejemplos                   {$$ = new Bloque(n_lineas, n_lineas);$$->addInstruccion($1); $$->addInstruccion($2); $$->addInstruccion($3);}
+      /*--------------Producciones sin apartado de configuración---------*/
+      | definiciones  obstaculos ejemplos                   {$$ = new Bloque(n_lineas, n_lineas);$$->addInstruccion($1); $$->addInstruccion($2); $$->addInstruccion($3);}
+      | '\n' definiciones  obstaculos ejemplos               {$$ = new Bloque(n_lineas, n_lineas);$$->addInstruccion($2); $$->addInstruccion($3); $$->addInstruccion($4);}      
+      | '\n'  obstaculos ejemplos                            {$$ = new Bloque(n_lineas, n_lineas);$$->addInstruccion($2); $$->addInstruccion($3);}      
+      | obstaculos ejemplos                                  {$$ = new Bloque(n_lineas, n_lineas);$$->addInstruccion($1); $$->addInstruccion($2);}  
+      | error '\n' {yyerrok;}                                {$$ = new Bloque(n_lineas, n_lineas);}  
       ;
 
+
+/*-----------------------------------AREA DE DEFINICIONES-------------------*/
 definiciones: 
-      DEFINICIONES '\n' ldefinicion;
+      DEFINICIONES '\n' ldefinicion {$$= $3;}
+; 
 
 ldefinicion: 
-       ldefinicion declaracion
-      |ldefinicion constante
-      |ldefinicion escribir '\n'
+       ldefinicion declaracion   {$$= $1; $$->addInstruccion($2);}
+      |ldefinicion constante     {$$= $1; $$->addInstruccion($2);}
+      |ldefinicion escribir '\n' {$$= $1; $$->addInstruccion($2);}
       |ldefinicion error '\n' {yyerrok;}
-      |constante 
-      |declaracion 
-      |escribir '\n'
+      |constante        {$$= new Bloque(n_lineas,n_lineas); $$->addInstruccion($1);}   
+      |declaracion      {$$= new Bloque(n_lineas,n_lineas); $$->addInstruccion($1);}   
+      |escribir '\n'    {$$= new Bloque(n_lineas,n_lineas); $$->addInstruccion($1);}   
       |error '\n' {yyerrok;}
 ;
 
@@ -143,43 +147,43 @@ constante:
      |ID '=' coodernada  '\n'        { string id($1); $$= new Constante(n_lineas, n_lineas, id, $3); }
 ;
 
-
+/*------------------------------AREA DE CONFIGURACION------------------------------------*/
 configuracion:
-      CONFIGURACION '\n' lconfiguracion
+      CONFIGURACION '\n' lconfiguracion {$$=$3;}
 ;
 
 lconfiguracion: 
-        lconfiguracion dimension
-      | lconfiguracion entrada
-      | lconfiguracion salida
-      | lconfiguracion pausa
-      | lconfiguracion escribir
+        lconfiguracion dimension{$$= $1; $$->addInstruccion($2);}
+      | lconfiguracion entrada  {$$= $1; $$->addInstruccion($2);}
+      | lconfiguracion salida   {$$= $1; $$->addInstruccion($2);}
+      | lconfiguracion pausa    {$$= $1; $$->addInstruccion($2);}    
+      | lconfiguracion escribir {$$= $1; $$->addInstruccion($2);}
       | lconfiguracion error '\n' {yyerrok; }
-      | dimension 
-      | entrada
-      | salida
-      | pausa
-      | escribir
+      | dimension  {$$= new Bloque(n_lineas,n_lineas); $$->addInstruccion($1);}
+      | entrada    {$$= new Bloque(n_lineas,n_lineas); $$->addInstruccion($1);}
+      | salida     {$$= new Bloque(n_lineas,n_lineas); $$->addInstruccion($1);}
+      | pausa      {$$= new Bloque(n_lineas,n_lineas); $$->addInstruccion($1);}
+      | escribir   {$$= new Bloque(n_lineas,n_lineas); $$->addInstruccion($1);}          
       | error '\n' {yyerrok; }
 ;
 
 
 dimension:
-      DIMENSION expr '\n' {}
+      DIMENSION expr '\n' {$$ = new Establecer_dimension(n_lineas, n_lineas, $2);}
 ;
 
 entrada: 
-      ENTRADA expr '\n'
-     |ENTRADA coodernada '\n'
+      ENTRADA expr '\n'       {$$ = new Establecer_entrada(n_lineas, n_lineas, $2);}
+     |ENTRADA coodernada '\n' {$$ = new Establecer_entrada(n_lineas, n_lineas, $2);}
 ;
 
 salida:
-      SALIDA expr '\n'
-     |SALIDA coodernada '\n'
+      SALIDA expr '\n'        {$$ = new Establecer_salida(n_lineas, n_lineas, $2);}
+     |SALIDA coodernada '\n'  {$$ = new Establecer_salida(n_lineas, n_lineas, $2);}
 ;
 
 pausa:
-      PAUSA expr '\n'
+      PAUSA expr '\n'     {$$ = new Establecer_pausa(n_lineas, n_lineas, $2);}
 ;
 
 
@@ -217,18 +221,18 @@ asignacion:
 
 
 ejemplos:
-      EJEMPLOS '\n' lejemplos
+      EJEMPLOS '\n' lejemplos {$$ = $3;}
 ;
 
 lejemplos:
-       lejemplos ejemplo
+       lejemplos ejemplo {$$= $1; $$->addInstruccion($2);}
       |lejemplos error '\n' {yyerrok;}
-      |ejemplo 
+      |ejemplo  {$$= new Bloque(n_lineas, n_lineas); $$->addInstruccion($1);}
       |error {yyerrok;}
 ;
 
 ejemplo:
-      EJEMPLO ID '\n' bloque FINEJEMPLO '\n'
+      EJEMPLO ID '\n' bloque FINEJEMPLO '\n' {string id($2); $$ = new Ejemplo(n_lineas, n_lineas, id, $4);}
 ;
 
 bloque:
