@@ -40,7 +40,7 @@ int main(int argc, char** argv)
 	entornoPonerEntrada(5,6,0.400);
 	entornoPonerSalida(0,2);
 
-	entornoMostrarMensaje("Soy Ejemplo 1");
+	entornoMostrarMensaje("Soy Ejemplo 1 erick");
 	entornoPonerFigura(5,5,0.40);
 	entornoPonerFigura(5,4,0.40);
 	entornoPonerFigura(5,3,0.40);

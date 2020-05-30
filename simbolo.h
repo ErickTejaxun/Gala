@@ -12,7 +12,7 @@ Teoría de Lenguajes UEx 2020
 #include <iostream>
 #include <math.h>
 #include <vector>
-
+#include <fstream>
 
 using namespace std;
 class Expresion;
@@ -292,6 +292,8 @@ class Entorno
     public:
         TablaSimbolos tabla;
         Entorno *padre; /*Puntero hacia el entorno padre.*/
+        string path_fichero = "";
+        ofstream fichero;
         Entorno(Entorno * p)
         {
             padre = p;
@@ -315,7 +317,23 @@ class Entorno
             tabla.insertarSimbolo(entrada_tablero);
             tabla.insertarSimbolo(salida_tablero);
             tabla.insertarSimbolo(posicion_relativa);
-        }           
+        } 
+        void cerrarFichero()
+        {
+            if(&fichero==NULL)
+            {                
+                fichero.close();
+            }
+        }
+        void escribir_fichero(string cadena)
+        {
+            if(&fichero==NULL)
+            {                
+                fichero.open (path_fichero,ios::app);                
+            }            
+            fichero << cadena;            
+        } 
+
 };
 
 /*Clase NodoAST es una clase abstracta que nos permitirá definir las principales operaciones
@@ -1646,10 +1664,10 @@ class Ejemplo:public Instruccion
 class Programa:public Instruccion
 {
     public:
-        Bloque * definiciones;
-        Bloque * configuraciones;
-        Bloque * obstaculos;
-        Bloque * ejemplos;
+        Bloque * definiciones = NULL;
+        Bloque * configuraciones= NULL;
+        Bloque * obstaculos= NULL;
+        Bloque * ejemplos= NULL;
         Programa(int l, int c)
         {
             linea = l;
@@ -1678,6 +1696,7 @@ class Programa:public Instruccion
 
         void ejecutar(Entorno *e) override
         {
+            
             if(definiciones!=NULL)
             {
                 definiciones->ejecutar(e);
@@ -1693,7 +1712,8 @@ class Programa:public Instruccion
             if(ejemplos!=NULL)
             {
                 ejemplos->ejecutar(e);
-            }      
+            } 
+            
         }
 
 };

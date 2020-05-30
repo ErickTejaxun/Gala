@@ -9,6 +9,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <vector>
+#include <fstream>
 using namespace std;
 extern int n_lineas;
 extern int yylex();
@@ -297,6 +298,8 @@ expr:    NUMERO 		      { $$ = new Literal(n_lineas,n_lineas, $1); }
        | CADENA               { string cad($1); $$ = new Literal(n_lineas, n_lineas, cad );}
        ;
 %%
+void escribirEncabezado(string path);
+void escribirFinal(string path);
 
 int main(int argc, char *argv[])
 {
@@ -308,7 +311,7 @@ int main(int argc, char *argv[])
       else       
       {
             yyin=fopen(argv[1],"rt");
-            yyout = fopen(argv[2],"wt");
+            //yyout = fopen(argv[2],"wt");
             n_lineas = 1;
             if(yyin==0)
             {
@@ -325,10 +328,15 @@ int main(int argc, char *argv[])
             }
             else
             {
+                  string path(argv[2]);
+                  escribirEncabezado(path);
+                  global.path_fichero = path;
                   if(raiz->esInstruccion())
                   {
-                        raiz->ejecutar(&global);
+                        raiz->ejecutar(&global);                        
                   }
+                  global.cerrarFichero();
+                  escribirFinal(path);
             }
             cout<<"--------------------------Tabla de símbolos------------------------------------------"<<endl;
             cout<<global.tabla.getCadenaData()<<endl;
@@ -341,4 +349,25 @@ int main(int argc, char *argv[])
             return 0;
       }     
       return 0;
+}
+
+
+void escribirEncabezado(string path)
+{
+
+      string encabezado = "#include <iostream>\n#include <allegro5/allegro.h>\n#include <stdio.h>\n#include \"entorno.h\"\n\nusing namespace std;\n\nint main(int argc, char** argv)\n{";
+      ofstream fichero;
+      fichero.open (path);
+      fichero << encabezado;
+      fichero.close();                
+}
+
+void escribirFinal(string path)
+{
+
+      string cadena = "\n\treturn 0;\n}";
+      ofstream fichero;
+      fichero.open (path,ios::app);
+      fichero << cadena;
+      fichero.close();                
 }
