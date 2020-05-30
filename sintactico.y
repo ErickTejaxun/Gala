@@ -92,7 +92,7 @@ void yyerror(const char* s)
 
 %%
 
-inicio: programa {/*raiz = $1;*/}
+inicio: programa {raiz = $1;}
 ;
 
 programa:
