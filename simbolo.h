@@ -107,7 +107,8 @@ class simbolo
         string valor_cadena;
         string id ="";
         int linea;
-        int columna;                
+        int columna;
+        bool constante = false;
         /*Constructores*/
         simbolo() {} ;
         simbolo(string i, int v, int l, int c): id(i), valor_entero(v), linea(l), columna(c){tipo = Type(TIPOENTERO);};
@@ -119,7 +120,6 @@ class simbolo
         Type getTipo(Entorno *e){ return tipo;}    
 
         /*Manejo de consantes*/
-        bool constante = false;
         bool esConstante(){return constante;}
         string rol()
         {
@@ -139,7 +139,7 @@ class TablaSimbolos
         //string tipos[4] = {"TIPOENTERO","TIPOREAL","lógico","TIPOERROR"};    
         string getCadenaData()
         {
-            string DATACADENA = "Nombre\t\t\tTipo\t\t\tValor";            
+            string DATACADENA = "Nombre\t\t\tTipo\t\t\tRol\t\t\tValor";
             map<string, simbolo>::iterator item;
             for(item = tabla.begin(); item != tabla.end(); item++)
             {
@@ -147,23 +147,23 @@ class TablaSimbolos
                 {
                     case TIPOENTERO:
                         DATACADENA = DATACADENA + "\n"+item->second.id +"\t\t\t"+item->second.tipo.getNombre()+"\t\t\t"
-                        +to_string(item->second.valor_entero);
+                        +item->second.rol()+"\t\t\t"+to_string(item->second.valor_entero);
                         break;                
                     case TIPOREAL:
                         DATACADENA = DATACADENA + "\n"+item->second.id +"\t\t\t"+item->second.tipo.getNombre()+"\t\t\t"
-                        +to_string(item->second.valor_real);
+						+item->second.rol()+"\t\t\t"+to_string(item->second.valor_real);
                         break;                
                     case TIPOLOGICO:
                         DATACADENA = DATACADENA + "\n"+item->second.id +"\t\t\t"+item->second.tipo.getNombre()+"\t\t\t"
-                        +item->second.getCadenaLogico();
+						+item->second.rol()+"\t\t\t"+item->second.getCadenaLogico();
                         break;   
                     case TIPOCADENA:
                         DATACADENA = DATACADENA + "\n"+item->second.id +"\t\t\t"+item->second.tipo.getNombre()+"\t\t\t"
-                        +item->second.valor_cadena;
+						+item->second.rol()+"\t\t\t"+item->second.valor_cadena;
                         break;
                     case TIPOPOSICION:
                         DATACADENA = DATACADENA + "\n"+item->second.id +"\t\t\t"+item->second.tipo.getNombre()+"\t\t\t"
-                        +"x: " +to_string(item->second.valor_posicion[0]) +"   y: " +to_string(item->second.valor_posicion[1]);
+						+item->second.rol()+"\t\t\ty:" +to_string(item->second.valor_posicion[0]) +"   x: " +to_string(item->second.valor_posicion[1]);
                         break;                       
                     default:
                         break;
@@ -204,6 +204,7 @@ class TablaSimbolos
             simb.linea = s->linea; 
             simb.columna = s->columna; 
             simb.tipo= Type(s->tipo.tipo);
+            simb.constante = s->constante;
             switch (s->tipo.getTipo())
             {
                 case TIPOENTERO:
@@ -245,7 +246,7 @@ class TablaSimbolos
                 if(tmp->constante)
                 {
                     Error::registrarErrorSemantico(s->linea, s->columna, s->id,                         
-                        "El valor del símbolo " +s->id+ " es constante ");
+                        "Error en asignación: El valor del símbolo " +s->id+ " es constante ");
                     return -1;
                 }
                 if(s->tipo.tipo == tmp->tipo.tipo)
@@ -318,19 +319,29 @@ class Entorno
             tabla.insertarSimbolo(salida_tablero);
             tabla.insertarSimbolo(posicion_relativa);
         } 
+        void abrirFichero()
+        {
+            /*Primero limpiamos el archivo*/
+            ofstream fichero2;
+            fichero2.open (path_fichero);
+            fichero2 << " ";
+            fichero2.close();
+
+            /*Abrimos en modo de escritura*/
+            fichero.open (path_fichero, ios::app);
+        }
+
         void cerrarFichero()
         {
-            if(&fichero==NULL)
-            {                
-                fichero.close();
+        	fichero.close();
+            /*if(&fichero==NULL)
+            {
             }
+            */
         }
         void escribir_fichero(string cadena)
         {
-            if(&fichero==NULL)
-            {                
-                fichero.open (path_fichero,ios::app);                
-            }            
+        	//cout<<cadena<<endl;
             fichero << cadena;            
         } 
 
@@ -844,7 +855,7 @@ class Modulo: public Expresion
             if(resultado.getTipo(e).esEntero()) // TIPOREAL
             {
                 
-                resultado.valor_real = valor_izquierdo.valor_entero % valor_derecho.valor_entero; 
+                resultado.valor_entero = valor_izquierdo.valor_entero % valor_derecho.valor_entero;
             }   
             return resultado;
         }
@@ -868,9 +879,9 @@ class Modulo: public Expresion
             {
                 return Type(TIPOREAL);
             }
-            if(izquierdo->getTipo(e).esEntero() ||derecho->getTipo(e).esEntero())
+            if(izquierdo->getTipo(e).esEntero() && derecho->getTipo(e).esEntero())
             {
-                return Type(TIPOREAL);
+                return Type(TIPOENTERO);
             }
 
         }
@@ -1257,7 +1268,10 @@ class Bloque: public Instruccion
 
         void addInstruccion(Instruccion *inst)
         {
-            instrucciones.push_back(inst);
+        	if(inst!=NULL)
+        	{
+        		instrucciones.push_back(inst);
+        	}
         }
 
         void ejecutar(Entorno *e)override
@@ -1387,83 +1401,96 @@ class Obstaculo_movimiento: public Instruccion
     public:
         string movimiento;
         Expresion *expr;
+        bool esEjemplo = false;
         Obstaculo_movimiento(int l, int c, string mov, Expresion *e)
         {
             linea = l;
             columna = c;
             movimiento = mov;
             expr = e;
-        } 
+            esEjemplo = false;
+        }
+        Obstaculo_movimiento(int l, int c, string mov, Expresion *e, bool exm)
+        {
+            linea = l;
+            columna = c;
+            movimiento = mov;
+            expr = e;
+            esEjemplo = true;
+        }
         void ejecutar(Entorno *e)override
         {
             simbolo valor = expr->getValor(e);
             if(valor.tipo.esNumerico())
-            {                
-                int valorMovimiento = 0;
-                if(valor.tipo.esEntero()){ valorMovimiento = valor.valor_entero;}
-                else{ valorMovimiento = valor.valor_real;}
-
-                simbolo *posicion_obstaculo = e->tabla.obtenerSimboloLocal("POSICION_RELATIVA_OBSTACULO", linea);
-                int y = posicion_obstaculo->valor_posicion[0];
-                int x = posicion_obstaculo->valor_posicion[1];
-                int maximo = e->tabla.obtenerSimboloLocal("TAMANO_TABLERO_INIT", linea)->valor_entero;
-                //cout<< "Aplicando movimiento "<< movimiento <<endl;
-                if(movimiento=="oeste")
-                {
-                    if(( x + valorMovimiento) < maximo)
-                    {
-                        posicion_obstaculo->valor_posicion[1] = x + valorMovimiento;
-                    }  
-                    else
-                    {
-                        Error::registrarErrorSemantico(linea, columna," " ,
-                        "Error: Instruccion "+movimiento + ": El valor debe ser menor al tamaño máximo del tablero." + to_string(x+valorMovimiento) +" > " + to_string(maximo)); 
-                    }              
-                }
-                else
-                if(movimiento=="este")
-                {
-                    if(( x + valorMovimiento) >= 0)
-                    {
-                        posicion_obstaculo->valor_posicion[1] = x - valorMovimiento;
-                    }              
-                    else
-                    {
-                        Error::registrarErrorSemantico(linea, columna," " ,
-                        "Error: Instruccion "+movimiento + ": El valor debe ser mayor a 0 (< "+ to_string(y-valorMovimiento)+")"); 
-                    }                                    
-                }
-                else
-                if(movimiento=="norte")
-                {
-                    if(( y - valorMovimiento) >= 0)
-                    {
-                        posicion_obstaculo->valor_posicion[0] = y - valorMovimiento;
-                    }  
-                    else
-                    {
-                        Error::registrarErrorSemantico(linea, columna," " ,
-                        "Error: Instruccion "+movimiento + ": El valor debe ser mayor a 0 (< "+ to_string(y-valorMovimiento)+")"); 
-                    }                     
-                }
-                else
-                if(movimiento=="sur")
-                {
-                    if(( y + valorMovimiento) < maximo)
-                    {
-                        posicion_obstaculo->valor_posicion[0] = y + valorMovimiento;
-                    } 
-                    else
-                    {
-                        Error::registrarErrorSemantico(linea, columna," " ,
-                        "Error: Instruccion "+movimiento + ": El valor debe ser menor al tamaño máximo del tablero. "  + to_string(x+valorMovimiento) +" > " + to_string(maximo)); 
-                    }                        
-                }                                
-            }
-            else
             {
-                Error::registrarErrorSemantico(linea, columna," " ,
-                "El valor asociado a la instruaccion '"+movimiento+"' debe ser númerico.");                
+            	if(!esEjemplo)
+            	{
+					int valorMovimiento = 0;
+					if(valor.tipo.esEntero()){ valorMovimiento = valor.valor_entero;}
+					else{ valorMovimiento = valor.valor_real;}
+
+					simbolo *posicion_obstaculo = e->tabla.obtenerSimboloLocal("POSICION_RELATIVA_OBSTACULO", linea);
+					int y = posicion_obstaculo->valor_posicion[0];
+					int x = posicion_obstaculo->valor_posicion[1];
+					int maximo = e->tabla.obtenerSimboloLocal("TAMANO_TABLERO_INIT", linea)->valor_entero;
+					//cout<< "Aplicando movimiento "<< movimiento <<endl;
+					if(movimiento=="este")
+					{
+						if(( x + valorMovimiento) < maximo)
+						{
+							posicion_obstaculo->valor_posicion[1] = x + valorMovimiento;
+						}
+						else
+						{
+							Error::registrarErrorSemantico(linea, columna," " ,
+							"Error: Instruccion "+movimiento + ": El valor debe ser menor al tamaño máximo del tablero." + to_string(x+valorMovimiento) +" > " + to_string(maximo));
+						}
+					}
+					else
+					if(movimiento=="oeste")
+					{
+						if(( x + valorMovimiento) >= 0)
+						{
+							posicion_obstaculo->valor_posicion[1] = x - valorMovimiento;
+						}
+						else
+						{
+							Error::registrarErrorSemantico(linea, columna," " ,
+							"Error: Instruccion "+movimiento + ": El valor debe ser mayor a 0 (< "+ to_string(y-valorMovimiento)+")");
+						}
+					}
+					else
+					if(movimiento=="norte")
+					{
+						if(( y - valorMovimiento) >= 0)
+						{
+							posicion_obstaculo->valor_posicion[0] = y - valorMovimiento;
+						}
+						else
+						{
+							Error::registrarErrorSemantico(linea, columna," " ,
+							"Error: Instruccion "+movimiento + ": El valor debe ser mayor a 0 (< "+ to_string(y-valorMovimiento)+")");
+						}
+					}
+					else
+					if(movimiento=="sur")
+					{
+						if(( y + valorMovimiento) < maximo)
+						{
+							posicion_obstaculo->valor_posicion[0] = y + valorMovimiento;
+						}
+						else
+						{
+							Error::registrarErrorSemantico(linea, columna," " ,
+							"Error: Instruccion "+movimiento + ": El valor debe ser menor al tamaño máximo del tablero. "  + to_string(x+valorMovimiento) +" > " + to_string(maximo));
+						}
+					}
+				}
+				else
+				{
+					Error::registrarErrorSemantico(linea, columna," " ,
+					"El valor asociado a la instruaccion '"+movimiento+"' debe ser númerico.");
+				}
             }
         }
 };
@@ -1488,7 +1515,28 @@ class PonerObstaculo: public Instruccion
                 simbolo *posicion_obstaculo = e->tabla.obtenerSimboloLocal("POSICION_RELATIVA_OBSTACULO", linea);
                 if(posicion_obstaculo!=NULL)
                 {
-                    /*Aquí escribimos el código para posicionar un obstaculo en esta posicion*/
+                    int y_posicion = posicion_obstaculo->valor_posicion[0];
+                    int x_posicion = posicion_obstaculo->valor_posicion[1];
+                    int limite = e->tabla.obtenerSimboloLocal("TAMANO_TABLERO_INIT", 0)->valor_entero;
+                    // Comprobamos que los limites se cumplan
+                    if(y_posicion >= 0 && y_posicion < limite)
+                    {
+                        if(x_posicion >= 0 && x_posicion < limite)
+                        {
+                            string mensaje = "\tentornoPonerObstaculo(" + to_string(y_posicion) + ", " +to_string(x_posicion) + ");\n";
+                            e->escribir_fichero(mensaje);
+                        }
+                        else
+                        {
+                            Error::registrarErrorSemantico(linea, columna," " ,
+                            "Error: Instruccion Obstaculo: El valor de columna es incorrecto, debe 0 =< "+ to_string(x_posicion)+" < "+to_string(limite ));
+                        }
+                    }
+                    else
+                    {
+                        Error::registrarErrorSemantico(linea, columna," " ,
+                        "Error: Instruccion Obstaculo: El valor de fila es incorrecto, debe 0 =< "+ to_string(y_posicion)+" < "+to_string(limite ) );
+                    }
                 }
             }
             else
@@ -1497,6 +1545,32 @@ class PonerObstaculo: public Instruccion
                 if(valor.tipo.esPosicion())
                 {
                     /*Aquí escribimos el código para posicionar un obstaculo en esta posicion*/
+                	simbolo *posicion_obstaculo = e->tabla.obtenerSimboloLocal("POSICION_RELATIVA_OBSTACULO", linea);
+                    int y_posicion = valor.valor_posicion[0];
+                    int x_posicion = valor.valor_posicion[1];
+                    int limite = e->tabla.obtenerSimboloLocal("TAMANO_TABLERO_INIT", 0)->valor_entero;
+                    // Comprobamos que los limites se cumplan
+                    if(y_posicion >= 0 && y_posicion < limite)
+                    {
+                        if(x_posicion >= 0 && x_posicion < limite)
+                        {
+                        	posicion_obstaculo->valor_posicion[0]+=y_posicion;
+                        	posicion_obstaculo->valor_posicion[1]+=x_posicion;
+                            string mensaje = "\tentornoPonerObstaculo(" + to_string(y_posicion) + ", " +to_string(x_posicion) + ");\n";
+                            e->escribir_fichero(mensaje);
+                        }
+                        else
+                        {
+                            Error::registrarErrorSemantico(linea, columna," " ,
+                            "Error: Instruccion Obstaculo: El valor de columna es incorrecto, debe 0 =< "+ to_string(x_posicion)+" < "+to_string(limite ));
+                        }
+                    }
+                    else
+                    {
+                        Error::registrarErrorSemantico(linea, columna," " ,
+                        "Error: Instruccion Obstaculo: El valor de fila es incorrecto, debe 0 =< "+ to_string(y_posicion)+" < "+to_string(limite ) );
+                    }
+
                 }
                 else                
                 {
@@ -1537,10 +1611,16 @@ class Establecer_dimension: public Instruccion
             	{
             		valorTmp = valor.valor_real;
             	}
-                if(valorTmp>0)
+                if(valorTmp>=4 && valorTmp<=10)
                 {
                 	simbolo *simbolo_dimension = e->tabla.obtenerSimboloLocal("TAMANO_TABLERO_INIT", linea);
                 	simbolo_dimension->valor_entero = valorTmp;
+                }
+                else
+                {
+                    Error::registrarErrorSemantico(linea, columna," " ,
+                    "Error al tratar de establecer el valor" + to_string(valorTmp) + " al tamaño del tablero. Tiene que ser un valor  4<=valor<=10");
+                    return;
                 }
             }
         }
@@ -1567,9 +1647,46 @@ class Establecer_entrada: public Instruccion
         	}
         	else
         	{
-        		simbolo *simbolo_entrada = e->tabla.obtenerSimboloLocal("ENTRADA_TABLERO_INIT", linea);
-        		simbolo_entrada->valor_posicion[0] =coordena.valor_posicion[0];
-        		simbolo_entrada->valor_posicion[1] =coordena.valor_posicion[1];
+        		simbolo *simbolo_dimension = e->tabla.obtenerSimboloLocal("ENTRADA_TABLERO_INIT", linea);
+        		/*Verificamos que esté en el borde del tablero*/
+        		int tamano_tablero = e->tabla.obtenerSimboloLocal("TAMANO_TABLERO_INIT", 0)->valor_entero;
+        		int y_coordenada = coordena.valor_posicion[0];
+        		int x_coordenada = coordena.valor_posicion[1];
+
+        		if( y_coordenada == 0 || y_coordenada == (tamano_tablero -1) )
+        		{
+        			if( x_coordenada >= 0 && x_coordenada < tamano_tablero )
+        			{
+                		simbolo_dimension->valor_posicion[0] =coordena.valor_posicion[0];
+                		simbolo_dimension->valor_posicion[1] =coordena.valor_posicion[1];
+        			}
+        			else
+        			{
+                        Error::registrarErrorSemantico(linea, columna," " ,
+                        "Error con coordenada ("+ to_string(y_coordenada)+ ","+ to_string(x_coordenada)+") para establecer Entrada. Debe estar al borde del tablero.");
+        			}
+        		}
+        		else
+        		{
+        			if( y_coordenada >= 0 && y_coordenada < tamano_tablero )
+        			{
+            			if( x_coordenada >= 0 || x_coordenada < tamano_tablero )
+            			{
+                    		simbolo_dimension->valor_posicion[0] =coordena.valor_posicion[0];
+                    		simbolo_dimension->valor_posicion[1] =coordena.valor_posicion[1];
+            			}
+            			else
+            			{
+                            Error::registrarErrorSemantico(linea, columna," " ,
+                            "Error con coordenada ("+ to_string(y_coordenada)+ ","+ to_string(x_coordenada)+") para establecer Entrada. Debe estar al borde del tablero.");
+            			}
+        			}
+        			else
+        			{
+                        Error::registrarErrorSemantico(linea, columna," " ,
+                        "Error con coordenada ("+ to_string(y_coordenada)+ ","+ to_string(x_coordenada)+") para establecer Entrada. Debe estar al borde del tablero.");
+        			}
+        		}
         	}
         }
 };
@@ -1597,8 +1714,46 @@ class Establecer_salida: public Instruccion
         	else
         	{
         		simbolo *simbolo_dimension = e->tabla.obtenerSimboloLocal("SALIDA_TABLERO_INIT", linea);
-        		simbolo_dimension->valor_posicion[0] =coordena.valor_posicion[0];
-        		simbolo_dimension->valor_posicion[1] =coordena.valor_posicion[1];
+        		/*Verificamos que esté en el borde del tablero*/
+        		int tamano_tablero = e->tabla.obtenerSimboloLocal("TAMANO_TABLERO_INIT", 0)->valor_entero;
+        		int y_coordenada = coordena.valor_posicion[0];
+        		int x_coordenada = coordena.valor_posicion[1];
+
+        		if( y_coordenada == 0 || y_coordenada == (tamano_tablero -1) )
+        		{
+        			if( x_coordenada >= 0 && x_coordenada < tamano_tablero )
+        			{
+                		simbolo_dimension->valor_posicion[0] =coordena.valor_posicion[0];
+                		simbolo_dimension->valor_posicion[1] =coordena.valor_posicion[1];
+        			}
+        			else
+        			{
+                        Error::registrarErrorSemantico(linea, columna," " ,
+                        "Error con coordenada ("+ to_string(y_coordenada)+ ","+ to_string(x_coordenada)+") para establecer Salida. Debe estar al borde del tablero.");
+        			}
+        		}
+        		else
+        		{
+        			if( y_coordenada >= 0 && y_coordenada < tamano_tablero )
+        			{
+            			if( x_coordenada >= 0 || x_coordenada < tamano_tablero )
+            			{
+                    		simbolo_dimension->valor_posicion[0] =coordena.valor_posicion[0];
+                    		simbolo_dimension->valor_posicion[1] =coordena.valor_posicion[1];
+            			}
+            			else
+            			{
+                            Error::registrarErrorSemantico(linea, columna," " ,
+                            "Error con coordenada ("+ to_string(y_coordenada)+ ","+ to_string(x_coordenada)+") para establecer Salida. Debe estar al borde del tablero.");
+            			}
+        			}
+        			else
+        			{
+                        Error::registrarErrorSemantico(linea, columna," " ,
+                        "Error con coordenada ("+ to_string(y_coordenada)+ ","+ to_string(x_coordenada)+") para establecer Salida. Debe estar al borde del tablero.");
+        			}
+        		}
+
         	}
         }
 };
@@ -1657,6 +1812,7 @@ class Ejemplo:public Instruccion
         void ejecutar(Entorno *e) override
         {
             /*Aquí escribimos el código para generar los movimientos*/
+
         }
 
 };
@@ -1696,7 +1852,7 @@ class Programa:public Instruccion
 
         void ejecutar(Entorno *e) override
         {
-            
+        	e->abrirFichero();
             if(definiciones!=NULL)
             {
                 definiciones->ejecutar(e);
@@ -1704,6 +1860,19 @@ class Programa:public Instruccion
             if(configuraciones!=NULL)
             {
                 configuraciones->ejecutar(e);
+                //entornoPonerEntrada(5,6,0.400);
+                int y_entrada = e->tabla.obtenerSimboloLocal("ENTRADA_TABLERO_INIT", 0)->valor_posicion[0];
+                int x_entrada = e->tabla.obtenerSimboloLocal("ENTRADA_TABLERO_INIT", 0)->valor_posicion[1];
+                float pausa = e->tabla.obtenerSimboloLocal("PAUSA_TABLERO", 0)->valor_real;
+                string cadena = "\tentornoPonerEntrada("+to_string(y_entrada)+","+to_string(x_entrada)+","+to_string(pausa)+");\n";
+                e->escribir_fichero(cadena);
+
+                //entornoPonerSalida(0,2);
+                int y_salida = e->tabla.obtenerSimboloLocal("SALIDA_TABLERO_INIT", 0)->valor_posicion[0];
+                int x_salida = e->tabla.obtenerSimboloLocal("SALIDA_TABLERO_INIT", 0)->valor_posicion[1];
+                cadena = "\tentornoPonerSalida("+to_string(y_salida)+","+to_string(x_salida)+");\n";
+
+                e->escribir_fichero(cadena);
             }   
             if(obstaculos!=NULL)
             {
@@ -1713,7 +1882,24 @@ class Programa:public Instruccion
             {
                 ejemplos->ejecutar(e);
             } 
+            /*De ultimo agregamos el tamaño del tablero*/
             
+            string cadena_actual;
+            string output;
+            ifstream file;
+            file.open(e->path_fichero);
+            file >> cadena_actual;
+            file.close();
+
+            string encabezado = "\n\n\tentornoIniciar(" +to_string(e->tabla.obtenerSimboloLocal("TAMANO_TABLERO_INIT",0)->valor_entero)+");";
+            encabezado = encabezado + "\n"+cadena_actual;
+
+            ofstream fichero;
+            fichero.open (e->path_fichero);
+            fichero << encabezado;
+            fichero.close();
+
+
         }
 
 };

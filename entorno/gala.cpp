@@ -59,8 +59,8 @@ int main(int argc, char** argv)
 	 
 /* ------- RECORRIDO: EJEMPLO_2 ------- */
 
-	entornoPonerEntrada(5,6,0.400);
-	entornoPonerSalida(0,2);
+	//entornoPonerEntrada(5,6,0.400);
+	//entornoPonerSalida(0,2);
 
 	entornoMostrarMensaje("Soy Ejemplo 2");
 	entornoPonerFigura(4,6,0.40);

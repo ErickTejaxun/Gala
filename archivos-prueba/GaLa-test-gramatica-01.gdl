@@ -19,13 +19,13 @@ DEFINICIONES # BLOQUE 1
     real r0
     cadena c0
     posicion p0
-    
+    entero contador
   # Si hay mas de una deben separase por comas  
     
     entero e1,e2,e3
     real f1,f2,f3
     cadena c1,c2,c3
-    posicion p1,p2,p3
+    posicion p1,p2,p3    
 
   # CONSTANTES - Las constantes se definen indicando sólo su valor que ya no podrá ser modificado durante el resto del programa. 
   #              El tipo de las constantes está implícito en el valor asignado. 
@@ -43,6 +43,8 @@ DEFINICIONES # BLOQUE 1
     C5 = C1 + 2
     C6 = C2 - 1.1
     C7 = <C1,C1-2>
+    modulo = 20%3 
+    mensaje = "UEx"
     
 
 CONFIGURACION # BLOQUE 2
@@ -50,19 +52,21 @@ CONFIGURACION # BLOQUE 2
   # Cada instrucción comienza con una palabra reservada que puede ser escrita utilizando letras mayúsculas o minúsculas
   # y va seguida de uno o más parámetros
         
-    DiMeNsIon 8 + C1
+    DiMeNsIon 8 + C1 
     EnTrada C7
     SalIda C4
-    PausA C2 - 0.25
+    PausA C2 - 0.50
 
 OBSTACULOS # BLOQUE 3
 
   # En este bloque pueden aparecer: asignaciones, direcciones (norte, sur, este, oeste), obstaculos (relativos y absolutos) y escribir mensajes
     
   # Asignaciones    
+    #C1 = C1 * 20
     e0 = C1 + 2
     f1 = C2 * 2
     c1 = "Obstaculo"
+    c1 = mensaje + mensaje  + (10*20%3*30)
     p3 = <2, e0 + 1>
     
   # Direcciones (norte, sur, este, oeste) y obstáculo relativo
@@ -90,9 +94,15 @@ OBSTACULOS # BLOQUE 3
       escribir "Else entrando"
     finsi
 
-    repite 5
-      e0 = e0 *2 
-      escribir e0
+    repite C5*10      
+      si e0 < 20
+      entonces 
+        e0 = e0 + 2
+      sino         
+        e0 = e0 +10        
+      finsi
+      escribir contador +")"+  e0
+      contador = contador + 1
     finrepite
 
 

@@ -121,11 +121,11 @@ ldefinicion:
        ldefinicion declaracion   {$$= $1; $$->addInstruccion($2);}
       |ldefinicion constante     {$$= $1; $$->addInstruccion($2);}
       |ldefinicion escribir '\n' {$$= $1; $$->addInstruccion($2);}
-      |ldefinicion error '\n' {yyerrok;}
+      |ldefinicion error '\n' {yyerrok; $$=$1;}
       |constante        {$$= new Bloque(n_lineas,n_lineas); $$->addInstruccion($1);}   
       |declaracion      {$$= new Bloque(n_lineas,n_lineas); $$->addInstruccion($1);}   
       |escribir '\n'    {$$= new Bloque(n_lineas,n_lineas); $$->addInstruccion($1);}   
-      |error '\n' {yyerrok;}
+      |error '\n' {yyerrok; $$= new Bloque(n_lineas,n_lineas); }
 ;
 
 
@@ -161,13 +161,13 @@ lconfiguracion:
       | lconfiguracion salida   {$$= $1; $$->addInstruccion($2);}
       | lconfiguracion pausa    {$$= $1; $$->addInstruccion($2);}    
       | lconfiguracion escribir {$$= $1; $$->addInstruccion($2);}
-      | lconfiguracion error '\n' {yyerrok; }
+      | lconfiguracion error '\n' {yyerrok; $$=$1;}
       | dimension  {$$= new Bloque(n_lineas,n_lineas); $$->addInstruccion($1);}
       | entrada    {$$= new Bloque(n_lineas,n_lineas); $$->addInstruccion($1);}
       | salida     {$$= new Bloque(n_lineas,n_lineas); $$->addInstruccion($1);}
       | pausa      {$$= new Bloque(n_lineas,n_lineas); $$->addInstruccion($1);}
       | escribir   {$$= new Bloque(n_lineas,n_lineas); $$->addInstruccion($1);}          
-      | error '\n' {yyerrok; }
+      | error '\n' {yyerrok; } {yyerrok;$$= new Bloque(n_lineas,n_lineas); }
 ;
 
 
@@ -214,7 +214,7 @@ obstaculo:
       |escribir '\n'                {$$=$1;}
       |repetir '\n'                 {$$=$1;}
       |si '\n'                      {$$=$1;}
-      | error '\n'                  {yyerrok; }
+      | error '\n'                  {yyerrok; Obstaculo_movimiento * nuevo =NULL; $$=nuevo; }
 ;
 
 asignacion:
@@ -229,9 +229,9 @@ ejemplos:
 
 lejemplos:
        lejemplos '\n' ejemplo {$$= $1; $$->addInstruccion($3);}
-      |lejemplos '\n' error '\n' {yyerrok;}
+      |lejemplos '\n' error '\n' {yyerrok; $$=$1;}
       |ejemplo  {$$= new Bloque(n_lineas, n_lineas); $$->addInstruccion($1);}
-      |error {yyerrok;}
+      |error {yyerrok;} {yyerrok;$$= new Bloque(n_lineas, n_lineas); }
 ;
 
 ejemplo:
@@ -300,6 +300,7 @@ expr:    NUMERO 		      { $$ = new Literal(n_lineas,n_lineas, $1); }
 %%
 void escribirEncabezado(string path);
 void escribirFinal(string path);
+void crear_fichero(string path);
 
 int main(int argc, char *argv[])
 {
@@ -328,14 +329,15 @@ int main(int argc, char *argv[])
             }
             else
             {
-                  string path(argv[2]);
-                  escribirEncabezado(path);
+                  string path(argv[2]);      
+                  crear_fichero(path);            
                   global.path_fichero = path;
                   if(raiz->esInstruccion())
                   {
                         raiz->ejecutar(&global);                        
-                  }
-                  global.cerrarFichero();
+                        global.cerrarFichero();
+                  }                  
+                  //escribirEncabezado(path);                  
                   escribirFinal(path);
             }
             cout<<"--------------------------Tabla de símbolos------------------------------------------"<<endl;
@@ -345,17 +347,35 @@ int main(int argc, char *argv[])
             {
                   cout<< e.getMensaje()<<endl;
             }
-            cout<<"-------------------------------------------------------------------------------------\n"<<endl;            
+            cout<<"-------------------------------------------------------------------------------------\n"<<endl;                        
             return 0;
       }     
       return 0;
 }
 
 
+void crear_fichero(string path)
+{
+      ofstream fichero;
+      fichero.open (path);
+      fichero << "";
+      fichero.close();                
+}
+
+
 void escribirEncabezado(string path)
 {
+      string cadena_actual;
+      string output;
+      ifstream file_tmp;
+      file_tmp.open(path);
+      file_tmp >> cadena_actual;
+      cout << cadena_actual<< endl;
+      file_tmp.close();
 
       string encabezado = "#include <iostream>\n#include <allegro5/allegro.h>\n#include <stdio.h>\n#include \"entorno.h\"\n\nusing namespace std;\n\nint main(int argc, char** argv)\n{";
+      encabezado = encabezado+cadena_actual;
+
       ofstream fichero;
       fichero.open (path);
       fichero << encabezado;
