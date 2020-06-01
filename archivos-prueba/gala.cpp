@@ -9,6 +9,7 @@ int main(int argc, char** argv)
 {
 	// CONFIGURACIÓN DEL ENTORNO
 	entornoIniciar(7);
+	entornoIniciar(10);
 	entornoPonerEntrada(5,6,0.400);
 	entornoPonerSalida(0,2);
 

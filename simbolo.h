@@ -1152,24 +1152,34 @@ class Escribir: public Instruccion
             {
                 case TIPOLOGICO:
                     cout<< expr->getValor(e).getCadenaLogico()<<endl;
+                    mostrar_en_pantalla(expr->getValor(e).getCadenaLogico(),e);
                     break;                
                 case TIPOENTERO:
                     cout<< expr->getValor(e).valor_entero<<endl;
+                    mostrar_en_pantalla(to_string(expr->getValor(e).valor_entero),e);
                     break;        
                 case TIPOREAL:
-                    cout<< expr->getValor(e).valor_real<<endl;    
+                    cout<< expr->getValor(e).valor_real<<endl;
+                    mostrar_en_pantalla(to_string(expr->getValor(e).valor_real),e);
                     break;        
                 case TIPOCADENA:
-                    cout<< expr->getValor(e).valor_cadena<<endl;        
+                    cout<< expr->getValor(e).valor_cadena<<endl;
+                    mostrar_en_pantalla(expr->getValor(e).valor_cadena,e);
                     break;        
                 case TIPOPOSICION:
                     cout<< "y:" <<expr->getValor(e).valor_posicion[0] <<", x:"<< expr->getValor(e).valor_posicion[1]<<endl;
+                    mostrar_en_pantalla("y:"+to_string(expr->getValor(e).valor_posicion[0])+", x:" + to_string(expr->getValor(e).valor_posicion[1]),e);
                     break;    
                 case TIPOERROR:
                     //cout <<"<---------------->";
                     break;                                                                      
             }            
-        }       
+        }
+        void mostrar_en_pantalla(string mens, Entorno *e)
+        {
+        	mens = "\tentornoMostrarMensaje(\""+mens+"\");\n";
+        	e->escribir_fichero(mens);
+        }
 };
 
 
@@ -1880,6 +1890,13 @@ class Programa:public Instruccion
             }   
             if(ejemplos!=NULL)
             {
+            	/*Creamos un nuevo símbolo que nos ayuda a saber la posición relativa del objeto*/
+                int y_entrada = e->tabla.obtenerSimboloLocal("ENTRADA_TABLERO_INIT", 0)->valor_posicion[0];
+                int x_entrada = e->tabla.obtenerSimboloLocal("ENTRADA_TABLERO_INIT", 0)->valor_posicion[1];
+                simbolo *posicion_jugador = new simbolo("JUGADOR_POSICION_ACTUAL",y_entrada,x_entrada, 0,0);
+                e->tabla.insertarSimbolo(posicion_jugador);
+
+                /*Ahora ejecutamos los ejemplos*/
                 ejemplos->ejecutar(e);
             } 
             /*De ultimo agregamos el tamaño del tablero*/
