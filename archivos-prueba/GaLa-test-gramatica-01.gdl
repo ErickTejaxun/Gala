@@ -75,12 +75,14 @@ OBSTACULOS # BLOQUE 3
     sur C1 + 2
     este 2
     oeste 3 + 1 - 2
-    obstaculo
+    obstaculo    
     
   # Obtáculos absolutos
     obstaculo <3,4>
+    obstaculo <3,4>
     obstaculo <C1,C1>
     obstaculo p3
+    obstaculo 
     
   # Escribir mensajes
     escribir "Bloque Obstaculos"
@@ -114,6 +116,7 @@ EJEMPLOS # BLOQUE 4
     ejemplo caso1
       # En un ejemplo pueden aparecer: asignaciones, direcciones (norte, sur, este, oeste) y escribir mensajes
       e1 = e1 + 2
+      escribir "caso1"
       norte e1 - 1
       este C1 + 2
       sur 1      

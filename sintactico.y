@@ -80,6 +80,9 @@ void yyerror(const char* s)
 %type <instruccion> ejemplo 
 %type <lista_id> listaid;
 %type <tipo> tipo;
+%type <bloque_instrucciones> bloque_ejemplo
+%type <instruccion> instruccion_ejemplo
+
 
 %right '!'
 %left AND OR
@@ -235,15 +238,33 @@ lejemplos:
 ;
 
 ejemplo:
-      EJEMPLO ID '\n' bloque FINEJEMPLO  {string id($2); $$ = new Ejemplo(n_lineas, n_lineas, id, $4);}      
+      EJEMPLO ID '\n' bloque_ejemplo FINEJEMPLO  {string id($2); $$ = new Ejemplo(n_lineas, n_lineas, id, $4);}      
+;
+
+
+bloque_ejemplo:
+       bloque_ejemplo instruccion_ejemplo {$$= $1; $$->addInstruccion($2);}
+      |instruccion_ejemplo {$$= new Bloque(n_lineas,n_lineas); $$->addInstruccion($1);}
+      
+;
+instruccion_ejemplo:
+       SUR expr '\n'                {$$=new Movimiento_jugador(n_lineas, n_lineas, "sur", $2);}
+      |NORTE expr '\n'              {$$=new Movimiento_jugador(n_lineas, n_lineas, "norte", $2);}
+      |OESTE expr '\n'              {$$=new Movimiento_jugador(n_lineas, n_lineas, "oeste", $2);}
+      |ESTE expr '\n'               {$$= new Movimiento_jugador(n_lineas, n_lineas, "este", $2);}      
+      |asignacion '\n'              {$$=$1;}      
+      |escribir '\n'                {$$=$1;}
+      |repetir '\n'                 {$$=$1;}
+      |si '\n'                      {$$=$1;}
+      | error '\n'                  {yyerrok; Movimiento_jugador * nuevo =NULL; $$=nuevo; }
+
+
+instruccion: obstaculo  {$$=$1;}
 ;
 
 bloque:
-       bloque instruccion     {$$= $1; $$->addInstruccion($2);}
-      |instruccion            {$$= new Bloque(n_lineas,n_lineas); $$->addInstruccion($1);}
-;
-
-instruccion: obstaculo  {$$=$1;}
+       bloque instruccion     {$$= $1; $$->addInstruccion($2);}      
+      |instruccion            {$$= new Bloque(n_lineas,n_lineas); $$->addInstruccion($1);}      
 ;
 
 repetir:
@@ -334,11 +355,8 @@ int main(int argc, char *argv[])
                   global.path_fichero = path;
                   if(raiz->esInstruccion())
                   {
-                        raiz->ejecutar(&global);                        
-                        global.cerrarFichero();
-                  }                  
-                  //escribirEncabezado(path);                  
-                  escribirFinal(path);
+                        raiz->ejecutar(&global);                                          
+                  }              
             }
             cout<<"--------------------------Tabla de símbolos------------------------------------------"<<endl;
             cout<<global.tabla.getCadenaData()<<endl;
@@ -363,31 +381,3 @@ void crear_fichero(string path)
 }
 
 
-void escribirEncabezado(string path)
-{
-      string cadena_actual;
-      string output;
-      ifstream file_tmp;
-      file_tmp.open(path);
-      file_tmp >> cadena_actual;
-      cout << cadena_actual<< endl;
-      file_tmp.close();
-
-      string encabezado = "#include <iostream>\n#include <allegro5/allegro.h>\n#include <stdio.h>\n#include \"entorno.h\"\n\nusing namespace std;\n\nint main(int argc, char** argv)\n{";
-      encabezado = encabezado+cadena_actual;
-
-      ofstream fichero;
-      fichero.open (path);
-      fichero << encabezado;
-      fichero.close();                
-}
-
-void escribirFinal(string path)
-{
-
-      string cadena = "\n\treturn 0;\n}";
-      ofstream fichero;
-      fichero.open (path,ios::app);
-      fichero << cadena;
-      fichero.close();                
-}

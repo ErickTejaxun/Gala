@@ -25,6 +25,7 @@ extern vector<Error> listaErrores;
 
 
 enum TYPES { TIPOENTERO, TIPOREAL, TIPOLOGICO, TIPOCADENA, TIPOPOSICION, TIPOERROR};
+enum ESTADO { CASILLA_VACIA, CASILLA_OBSTACULO, CASILLA_SALIDA, CASILLA_ENTRADA };
 class Error
 {
     public:
@@ -295,6 +296,7 @@ class Entorno
         Entorno *padre; /*Puntero hacia el entorno padre.*/
         string path_fichero = "";
         ofstream fichero;
+        int *tablero;
         Entorno(Entorno * p)
         {
             padre = p;
@@ -318,6 +320,11 @@ class Entorno
             tabla.insertarSimbolo(entrada_tablero);
             tabla.insertarSimbolo(salida_tablero);
             tabla.insertarSimbolo(posicion_relativa);
+            tablero = new int[10*10];
+            for(int i =0; i < 10*10; i++)
+            {
+            	tablero[i] = CASILLA_VACIA;
+            }
         } 
         void abrirFichero()
         {
@@ -334,10 +341,6 @@ class Entorno
         void cerrarFichero()
         {
         	fichero.close();
-            /*if(&fichero==NULL)
-            {
-            }
-            */
         }
         void escribir_fichero(string cadena)
         {
@@ -1285,7 +1288,8 @@ class Bloque: public Instruccion
         }
 
         void ejecutar(Entorno *e)override
-        {                 
+        {
+
             //cout<<"Hay "<< instrucciones.size() <<" instrucciones"<<endl;
             for (unsigned i=0; i<instrucciones.size(); i++)
             {
@@ -1533,8 +1537,21 @@ class PonerObstaculo: public Instruccion
                     {
                         if(x_posicion >= 0 && x_posicion < limite)
                         {
-                            string mensaje = "\tentornoPonerObstaculo(" + to_string(y_posicion) + ", " +to_string(x_posicion) + ");\n";
-                            e->escribir_fichero(mensaje);
+                        	//int estado_casilla = e->tablero[y_posicion * limite + x_posicion];
+                        	int *ptr = e->tablero;
+                        	int estado_casilla = *&ptr[y_posicion * limite + x_posicion];
+                        	//cout<<"Tipo casilla "<<estado_casilla<<endl;
+                        	if(estado_casilla==CASILLA_VACIA)
+                        	{
+                                string mensaje = "\tentornoPonerObstaculo(" + to_string(y_posicion) + ", " +to_string(x_posicion) + ");\n";
+                                e->escribir_fichero(mensaje);
+                                e->tablero[y_posicion * limite + x_posicion] = CASILLA_OBSTACULO;
+                        	}
+                        	else
+                        	{
+                                Error::registrarErrorSemantico(linea, columna," " ,
+                                "Error: Instruccion Obstaculo: La posición ("+ to_string(y_posicion)+" , "+to_string(x_posicion ) +") ocupada.");
+                        	}
                         }
                         else
                         {
@@ -1564,10 +1581,21 @@ class PonerObstaculo: public Instruccion
                     {
                         if(x_posicion >= 0 && x_posicion < limite)
                         {
-                        	posicion_obstaculo->valor_posicion[0]+=y_posicion;
-                        	posicion_obstaculo->valor_posicion[1]+=x_posicion;
-                            string mensaje = "\tentornoPonerObstaculo(" + to_string(y_posicion) + ", " +to_string(x_posicion) + ");\n";
-                            e->escribir_fichero(mensaje);
+                        	int estado_casilla = e->tablero[y_posicion * limite + x_posicion];
+                        	//cout<<"Tipo casilla "<<estado_casilla<<endl;
+                        	if(estado_casilla==CASILLA_VACIA)
+                        	{
+								posicion_obstaculo->valor_posicion[0]+=y_posicion;
+								posicion_obstaculo->valor_posicion[1]+=x_posicion;
+								string mensaje = "\tentornoPonerObstaculo(" + to_string(y_posicion) + ", " +to_string(x_posicion) + ");\n";
+								e->escribir_fichero(mensaje);
+								e->tablero[y_posicion * limite + x_posicion] = CASILLA_OBSTACULO;
+                        	}
+                        	else
+                        	{
+                                Error::registrarErrorSemantico(linea, columna," " ,
+                                "Error: Instruccion Obstaculo: La posición ("+ to_string(y_posicion)+" , "+to_string(x_posicion ) +") ocupada.");
+                        	}
                         }
                         else
                         {
@@ -1585,6 +1613,8 @@ class PonerObstaculo: public Instruccion
                 else                
                 {
                     /* Reportar error semantico*/
+                    Error::registrarErrorSemantico(linea, columna," " ,
+                    "Error: Instruccion Obstaculo: Valor esperado es un valor de tipo posición y se ha intentado establecer un valor de tipo "+ valor.tipo.getNombre());
                 }
             }
         }
@@ -1625,6 +1655,12 @@ class Establecer_dimension: public Instruccion
                 {
                 	simbolo *simbolo_dimension = e->tabla.obtenerSimboloLocal("TAMANO_TABLERO_INIT", linea);
                 	simbolo_dimension->valor_entero = valorTmp;
+
+                    e->tablero = new int[valorTmp*valorTmp];
+                    for(int i =0; i < valorTmp*valorTmp; i++)
+                    {
+                    	e->tablero[i] = CASILLA_VACIA;
+                    }
                 }
                 else
                 {
@@ -1822,10 +1858,147 @@ class Ejemplo:public Instruccion
         void ejecutar(Entorno *e) override
         {
             /*Aquí escribimos el código para generar los movimientos*/
+        	/*Primero reestablecemos el tamaño, la pausa la entrada y la salida*/
+        	e->escribir_fichero("\n\t/*Comenzando ejemplo*/\n");
 
+            //entornoPonerEntrada(5,6,0.400);
+            int y_entrada = e->tabla.obtenerSimboloLocal("ENTRADA_TABLERO_INIT", 0)->valor_posicion[0];
+            int x_entrada = e->tabla.obtenerSimboloLocal("ENTRADA_TABLERO_INIT", 0)->valor_posicion[1];
+            float pausa = e->tabla.obtenerSimboloLocal("PAUSA_TABLERO", 0)->valor_real;
+            string cadena = "\tentornoPonerEntrada("+to_string(y_entrada)+","+to_string(x_entrada)+","+to_string(pausa)+");\n";
+            e->escribir_fichero(cadena);
+
+            //entornoPonerSalida(0,2);
+            int y_salida = e->tabla.obtenerSimboloLocal("SALIDA_TABLERO_INIT", 0)->valor_posicion[0];
+            int x_salida = e->tabla.obtenerSimboloLocal("SALIDA_TABLERO_INIT", 0)->valor_posicion[1];
+            cadena = "\tentornoPonerSalida("+to_string(y_salida)+","+to_string(x_salida)+");\n";
+
+            e->escribir_fichero(cadena);
+
+
+        	instrucciones->ejecutar(e);
         }
 
 };
+
+class Movimiento_jugador: public Instruccion
+{
+    public:
+        string movimiento;
+        Expresion *expr;
+        bool esEjemplo = false;
+        Movimiento_jugador(int l, int c, string mov, Expresion *e)
+        {
+            linea = l;
+            columna = c;
+            movimiento = mov;
+            expr = e;
+            esEjemplo = false;
+        }
+        Movimiento_jugador(int l, int c, string mov, Expresion *e, bool exm)
+        {
+            linea = l;
+            columna = c;
+            movimiento = mov;
+            expr = e;
+            esEjemplo = true;
+        }
+        void ejecutar(Entorno *e)override
+        {
+        	//cout<<"Moviendo al jugador"<<endl;
+            simbolo valor = expr->getValor(e);
+            if(valor.tipo.esNumerico())
+            {
+            	if(!esEjemplo)
+            	{
+					int valorMovimiento = 0;
+					if(valor.tipo.esEntero()){ valorMovimiento = valor.valor_entero;}
+					else{ valorMovimiento = valor.valor_real;}
+
+					simbolo *posicion_obstaculo = e->tabla.obtenerSimboloLocal("JUGADOR_POSICION_ACTUAL", linea);
+					int y = posicion_obstaculo->valor_posicion[0];
+					int x = posicion_obstaculo->valor_posicion[1];
+					int maximo = e->tabla.obtenerSimboloLocal("TAMANO_TABLERO_INIT", linea)->valor_entero;
+					float pausa = e->tabla.obtenerSimboloLocal("PAUSA_TABLERO", linea)->valor_real;
+					//cout<< "Aplicando movimiento "<< movimiento <<endl;
+					if(movimiento=="este")
+					{
+						if(( x + valorMovimiento) < maximo)
+						{
+							posicion_obstaculo->valor_posicion[1] = x + valorMovimiento;
+							/*Ahora escribimos la cadena*/
+							string cadena = "\tentornoPonerFigura(" + to_string(posicion_obstaculo->valor_posicion[0]) + ", "+ to_string(posicion_obstaculo->valor_posicion[0])
+									+","+to_string(pausa)+");\n";
+							e->escribir_fichero(cadena);
+						}
+						else
+						{
+							Error::registrarErrorSemantico(linea, columna," " ,
+							"Error: Instruccion "+movimiento + ": El valor debe ser menor al tamaño máximo del tablero." + to_string(x+valorMovimiento) +" > " + to_string(maximo));
+						}
+					}
+					else
+					if(movimiento=="oeste")
+					{
+						if(( x + valorMovimiento) >= 0)
+						{
+							posicion_obstaculo->valor_posicion[1] = x - valorMovimiento;
+							/*Ahora escribimos la cadena*/
+							string cadena = "\tentornoPonerFigura(" + to_string(posicion_obstaculo->valor_posicion[0]) + ", "+ to_string(posicion_obstaculo->valor_posicion[0])
+									+","+to_string(pausa)+");\n";
+							e->escribir_fichero(cadena);
+						}
+						else
+						{
+							Error::registrarErrorSemantico(linea, columna," " ,
+							"Error: Instruccion "+movimiento + ": El valor debe ser mayor a 0 (< "+ to_string(y-valorMovimiento)+")");
+						}
+					}
+					else
+					if(movimiento=="norte")
+					{
+						if(( y - valorMovimiento) >= 0)
+						{
+							posicion_obstaculo->valor_posicion[0] = y - valorMovimiento;
+							/*Ahora escribimos la cadena*/
+							string cadena = "\tentornoPonerFigura(" + to_string(posicion_obstaculo->valor_posicion[0]) + ", "+ to_string(posicion_obstaculo->valor_posicion[0])
+									+","+to_string(pausa)+");\n";
+							e->escribir_fichero(cadena);
+						}
+						else
+						{
+							Error::registrarErrorSemantico(linea, columna," " ,
+							"Error: Instruccion "+movimiento + ": El valor debe ser mayor a 0 (< "+ to_string(y-valorMovimiento)+")");
+						}
+					}
+					else
+					if(movimiento=="sur")
+					{
+						if(( y + valorMovimiento) < maximo)
+						{
+							posicion_obstaculo->valor_posicion[0] = y + valorMovimiento;
+							/*Ahora escribimos la cadena*/
+							string cadena = "\tentornoPonerFigura(" + to_string(posicion_obstaculo->valor_posicion[0]) + ", "+ to_string(posicion_obstaculo->valor_posicion[0])
+									+","+to_string(pausa)+");\n";
+							e->escribir_fichero(cadena);
+						}
+						else
+						{
+							Error::registrarErrorSemantico(linea, columna," " ,
+							"Error: Instruccion "+movimiento + ": El valor debe ser menor al tamaño máximo del tablero. "  + to_string(x+valorMovimiento) +" > " + to_string(maximo));
+						}
+					}
+				}
+				else
+				{
+					Error::registrarErrorSemantico(linea, columna," " ,
+					"El valor asociado a la instruaccion '"+movimiento+"' debe ser númerico.");
+				}
+            }
+        }
+};
+
+
 
 class Programa:public Instruccion
 {
@@ -1863,6 +2036,8 @@ class Programa:public Instruccion
         void ejecutar(Entorno *e) override
         {
         	e->abrirFichero();
+        	string encabezado = "#include <iostream>\n#include <allegro5/allegro.h>\n#include <stdio.h>\n#include \"entorno.h\"\n\nusing namespace std;\n\nint main(int argc, char** argv)\n{\n";
+
             if(definiciones!=NULL)
             {
                 definiciones->ejecutar(e);
@@ -1898,7 +2073,7 @@ class Programa:public Instruccion
 
                 /*Ahora ejecutamos los ejemplos*/
                 ejemplos->ejecutar(e);
-            } 
+            }
             /*De ultimo agregamos el tamaño del tablero*/
             
             string cadena_actual;
@@ -1908,7 +2083,7 @@ class Programa:public Instruccion
             file >> cadena_actual;
             file.close();
 
-            string encabezado = "\n\n\tentornoIniciar(" +to_string(e->tabla.obtenerSimboloLocal("TAMANO_TABLERO_INIT",0)->valor_entero)+");";
+            encabezado = encabezado+"/*----------------Estableciendo tamaño del tablero-----------*/\n\n\tentornoIniciar(" +to_string(e->tabla.obtenerSimboloLocal("TAMANO_TABLERO_INIT",0)->valor_entero)+");";
             encabezado = encabezado + "\n"+cadena_actual;
 
             ofstream fichero;
@@ -1916,10 +2091,16 @@ class Programa:public Instruccion
             fichero << encabezado;
             fichero.close();
 
+            string cierre = "\n\treturn 0;\n}";
+            e->escribir_fichero(cierre);
+            e->cerrarFichero();
 
         }
 
 };
+
+
+
 
 
 

@@ -22,9 +22,9 @@ ident ([a-zA-Z]|_)([a-zA-Z]|_|{DIGITO})*
 cadena "\""[^"\""]*"\""
 %%
 
-<COM1>\n                       {yyless(0); BEGIN(COM);}
+<COM1>\n                       {n_lineas++; yyless(0); BEGIN(COM);}
 <COM1>.                        {;}   
-<COM>\n                        {n_lineas++;}
+<COM>\n                        {}
 <COM>#                         {BEGIN(COM1);}
 <COM>.                         {yyless(0); BEGIN(SALTO);}
 <SALTO>#                       {BEGIN(COM1);}
