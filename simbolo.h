@@ -488,7 +488,15 @@ class Suma: public Expresion
 
         simbolo getValor(Entorno *e) override
         {            
-            Type tmp = getTipo(e);            
+            Type tmp = getTipo(e);   
+            if(tmp.esError())
+            {
+                simbolo resultado = simbolo(); 
+                resultado.linea = linea; 
+                resultado.columna = columna; 
+                resultado.tipo = tmp;
+                return resultado;
+            }              
             simbolo valor_izquierdo = izquierdo->getValor(e);
             simbolo valor_derecho = derecho->getValor(e);
 
@@ -534,30 +542,32 @@ class Suma: public Expresion
 
         Type getTipo(Entorno *e) override
         {
-            if(!izquierdo->getTipo(e).esError() && !derecho->getTipo(e).esError())         
+            
+            Type tipoIzquierdo = izquierdo->getTipo(e);
+            Type tipoDerecho =  derecho->getTipo(e);
+            if(!tipoIzquierdo.esError() && !tipoDerecho.esError())         
             {
-                if(izquierdo->getTipo(e).esCadena() || derecho->getTipo(e).esCadena())
+                if(tipoIzquierdo.esCadena() || tipoDerecho.esCadena())
                 {
                     return Type(TIPOCADENA);
                 }
-                if(izquierdo->getTipo(e).esLogico() || derecho->getTipo(e).esLogico())
+                if(tipoIzquierdo.esLogico() || tipoDerecho.esLogico())
                 {              
                     Error::registrarErrorSemantico(linea, columna," " ,
-                    "Error en operación (+): No es permitida la operación " + izquierdo->getTipo(e).getNombre() + " + " + derecho->getTipo(e).getNombre());                             
+                    "Error en operación (+): No es permitida la operación " + tipoIzquierdo.getNombre() + " + " + tipoDerecho.getNombre());                             
                     return Type(TIPOERROR); // TIPOERROR;
                 }
-                if(izquierdo->getTipo(e).esReal() || derecho->getTipo(e).esReal())
+                if(tipoIzquierdo.esReal() || tipoDerecho.esReal())
                 {
                     return Type(TIPOREAL);
                 }
-                if(izquierdo->getTipo(e).esEntero() ||derecho->getTipo(e).esEntero())
+                if(tipoIzquierdo.esEntero() ||tipoDerecho.esEntero())
                 {
                     return Type(TIPOENTERO);
                 }                
-            }
-            
-            Error::registrarErrorSemantico(linea, columna," " ,
-            "Error en operación (+): No es permitida la operación " + izquierdo->getTipo(e).getNombre() + " + " + derecho->getTipo(e).getNombre());                                        
+            }            
+            //Error::registrarErrorSemantico(linea, columna," " ,
+            //"Error en operación (+): No es permitida la operación " + izquierdo->getTipo(e).getNombre() + " + " + derecho->getTipo(e).getNombre()); 
             return Type(TIPOERROR);
         }
 };
@@ -580,14 +590,23 @@ class Resta: public Expresion
 
         simbolo getValor(Entorno *e) override
         {
+            Type tmp = getTipo(e); 
+            if(tmp.esError())
+            {
+                simbolo resultado = simbolo(); 
+                resultado.linea = linea; 
+                resultado.columna = columna; 
+                resultado.tipo = tmp;
+                return resultado;
+            }
+
             simbolo valor_izquierdo = izquierdo->getValor(e);
             simbolo valor_derecho = derecho->getValor(e);
-            
 
             simbolo resultado = simbolo(); 
             resultado.linea = linea; 
             resultado.columna = columna; 
-            resultado.tipo = getTipo(e);
+            resultado.tipo = tmp;
             if(resultado.getTipo(e).esReal()) // TIPOREAL
             {
                 
@@ -606,24 +625,29 @@ class Resta: public Expresion
 
         Type getTipo(Entorno *e) override
         {
-
-            if(izquierdo->getTipo(e).esCadena() || derecho->getTipo(e).esCadena())
+            Type tipoIzquierdo =izquierdo->getTipo(e);
+            Type tipoDerecho =  derecho->getTipo(e);
+            if(tipoIzquierdo.esError() || tipoDerecho.esError())
+            {
+                return Type(TIPOERROR);
+            }            
+            if(tipoIzquierdo.esCadena() || tipoDerecho.esCadena())
             {
                 Error::registrarErrorSemantico(linea, columna," " ,
-                "Error en operación (-): No es permitida la operación " + izquierdo->getTipo(e).getNombre() + " - " + derecho->getTipo(e).getNombre());                
+                "Error en operación (-): No es permitida la operación " + tipoIzquierdo.getNombre() + " - " + tipoDerecho.getNombre());                
                 return Type(TIPOERROR);
             }
-            if(izquierdo->getTipo(e).esLogico() || derecho->getTipo(e).esLogico())
+            if(tipoIzquierdo.esLogico() || tipoDerecho.esLogico())
             {   
                 Error::registrarErrorSemantico(linea, columna," " ,
-                "Error en operación (-): No es permitida la operación " + izquierdo->getTipo(e).getNombre() + " - " + derecho->getTipo(e).getNombre());                                        
+                "Error en operación (-): No es permitida la operación " + tipoIzquierdo.getNombre() + " - " + tipoDerecho.getNombre());                                        
                 return Type(TIPOERROR); // TIPOERROR;
             }
-            if(izquierdo->getTipo(e).esReal() || derecho->getTipo(e).esReal())
+            if(tipoIzquierdo.esReal() || tipoDerecho.esReal())
             {
                 return Type(TIPOREAL);
             }
-            if(izquierdo->getTipo(e).esEntero() ||derecho->getTipo(e).esEntero())
+            if(tipoIzquierdo.esEntero() || tipoDerecho.esEntero())
             {
                 return Type(TIPOENTERO);
             }
@@ -647,6 +671,16 @@ class Multiplicacion: public Expresion
 
         simbolo getValor(Entorno *e) override
         {
+            Type tmp = getTipo(e);   
+            if(tmp.esError())
+            {
+                simbolo resultado = simbolo(); 
+                resultado.linea = linea; 
+                resultado.columna = columna; 
+                resultado.tipo = tmp;
+                return resultado;
+            }
+
             simbolo valor_izquierdo = izquierdo->getValor(e);
             simbolo valor_derecho = derecho->getValor(e);
             
@@ -672,24 +706,29 @@ class Multiplicacion: public Expresion
 
         Type getTipo(Entorno *e) override
         {
-
-            if(izquierdo->getTipo(e).esCadena() || derecho->getTipo(e).esCadena())
+            Type tipoIzquierdo = izquierdo->getTipo(e);
+            Type tipoDerecho = derecho->getTipo(e);
+            if(tipoIzquierdo.esError() || tipoDerecho.esError())
+            {
+                return Type(TIPOERROR);
+            }             
+            if(tipoIzquierdo.esCadena() || tipoDerecho.esCadena())
             {
                 Error::registrarErrorSemantico(linea, columna," " ,
-                "Error en operación (*): No es permitida la operación " + izquierdo->getTipo(e).getNombre() + " * " + derecho->getTipo(e).getNombre());                 
+                "Error en operación (*): No es permitida la operación " + tipoIzquierdo.getNombre() + " * " + tipoDerecho.getNombre());                 
                 return Type(TIPOERROR);
             }
-            if(izquierdo->getTipo(e).esLogico() || derecho->getTipo(e).esLogico())
+            if(tipoIzquierdo.esLogico() || tipoDerecho.esLogico())
             {                   
                 Error::registrarErrorSemantico(linea, columna," " ,
-                "Error en operación (*): No es permitida la operación " + izquierdo->getTipo(e).getNombre() + " * " + derecho->getTipo(e).getNombre());                         
+                "Error en operación (*): No es permitida la operación " + tipoIzquierdo.getNombre() + " * " + tipoDerecho.getNombre());                         
                 return Type(TIPOERROR); // TIPOERROR;
             }
-            if(izquierdo->getTipo(e).esReal() || derecho->getTipo(e).esReal())
+            if(tipoIzquierdo.esReal() || tipoDerecho.esReal())
             {
                 return Type(TIPOREAL);
             }
-            if(izquierdo->getTipo(e).esEntero() ||derecho->getTipo(e).esEntero())
+            if(tipoIzquierdo.esEntero() ||tipoDerecho.esEntero())
             {
                 return Type(TIPOENTERO);
             }
@@ -714,6 +753,17 @@ class Division: public Expresion
 
         simbolo getValor(Entorno *e) override
         {
+
+            Type tmp = getTipo(e);   
+            if(tmp.esError())
+            {
+                simbolo resultado = simbolo(); 
+                resultado.linea = linea; 
+                resultado.columna = columna; 
+                resultado.tipo = tmp;
+                return resultado;
+            }
+
             simbolo valor_izquierdo = izquierdo->getValor(e);
             simbolo valor_derecho = derecho->getValor(e);
             
@@ -741,23 +791,29 @@ class Division: public Expresion
         Type getTipo(Entorno *e) override
         {
 
-            if(izquierdo->getTipo(e).esCadena() || derecho->getTipo(e).esCadena())
+            Type tipoIzquierdo = izquierdo->getTipo(e);
+            Type tipoDerecho = derecho->getTipo(e);
+            if(tipoIzquierdo.esError() || tipoDerecho.esError())
+            {
+                return Type(TIPOERROR);
+            }   
+            if(tipoIzquierdo.esCadena() || tipoDerecho.esCadena())
             {
                 Error::registrarErrorSemantico(linea, columna," " ,
-                "Error en operación (/): No es permitida la operación " +  izquierdo->getTipo(e).getNombre() + " / " + derecho->getTipo(e).getNombre());                
+                "Error en operación (/): No es permitida la operación " +  tipoIzquierdo.getNombre() + " / " + tipoDerecho.getNombre());                
                 return Type(TIPOERROR);
             }
-            if(izquierdo->getTipo(e).esLogico() || derecho->getTipo(e).esLogico())
+            if(tipoIzquierdo.esLogico() || tipoDerecho.esLogico())
             {            
                 Error::registrarErrorSemantico(linea, columna," " ,
-                "Error en operación (/): No es permitida la operación " +  izquierdo->getTipo(e).getNombre() + " / " +  derecho->getTipo(e).getNombre());                               
+                "Error en operación (/): No es permitida la operación " +  tipoIzquierdo.getNombre() + " / " +  tipoDerecho.getNombre());                               
                 return Type(TIPOERROR); // TIPOERROR;
             }
-            if(izquierdo->getTipo(e).esReal() || derecho->getTipo(e).esReal())
+            if(tipoIzquierdo.esReal() || tipoDerecho.esReal())
             {
                 return Type(TIPOREAL);
             }
-            if(izquierdo->getTipo(e).esEntero() ||derecho->getTipo(e).esEntero())
+            if(tipoIzquierdo.esEntero() ||tipoDerecho.esEntero())
             {
                 return Type(TIPOENTERO);
             }
@@ -785,6 +841,17 @@ class Potencia: public Expresion
 
         simbolo getValor(Entorno *e) override
         {
+
+            Type tmp = getTipo(e);   
+            if(tmp.esError())
+            {
+                simbolo resultado = simbolo(); 
+                resultado.linea = linea; 
+                resultado.columna = columna; 
+                resultado.tipo = tmp;
+                return resultado;
+            }
+
             simbolo valor_izquierdo = izquierdo->getValor(e);
             simbolo valor_derecho = derecho->getValor(e);
             
@@ -808,23 +875,30 @@ class Potencia: public Expresion
         Type getTipo(Entorno *e) override
         {
 
-            if(izquierdo->getTipo(e).esCadena() || derecho->getTipo(e).esCadena())
+            Type tipoIzquierdo = izquierdo->getTipo(e);
+            Type tipoDerecho = derecho->getTipo(e);
+            if(tipoIzquierdo.esError() || tipoDerecho.esError())
+            {
+                return Type(TIPOERROR);
+            } 
+
+            if(tipoIzquierdo.esCadena() || tipoDerecho.esCadena())
             {
                 Error::registrarErrorSemantico(linea, columna," " ,
-                "Error en operación (^): No es permitida la operación " + izquierdo->getTipo(e).getNombre() + " ^ " + derecho->getTipo(e).getNombre());                
+                "Error en operación (^): No es permitida la operación " + tipoIzquierdo.getNombre() + " ^ " + tipoDerecho.getNombre());                
                 return Type(TIPOERROR);
             }
-            if(izquierdo->getTipo(e).esLogico() || derecho->getTipo(e).esLogico())
+            if(tipoIzquierdo.esLogico() || tipoDerecho.esLogico())
             {       
                 Error::registrarErrorSemantico(linea, columna," " ,
-                "Error en operación (^): No es permitida la operación " + izquierdo->getTipo(e).getNombre() + " ^ " + derecho->getTipo(e).getNombre());                                    
+                "Error en operación (^): No es permitida la operación " + tipoIzquierdo.getNombre() + " ^ " + tipoDerecho.getNombre());                                    
                 return Type(TIPOERROR); // TIPOERROR;
             }
-            if(izquierdo->getTipo(e).esReal() || derecho->getTipo(e).esReal())
+            if(tipoIzquierdo.esReal() || tipoDerecho.esReal())
             {
                 return Type(TIPOREAL);
             }
-            if(izquierdo->getTipo(e).esEntero() ||derecho->getTipo(e).esEntero())
+            if(tipoIzquierdo.esEntero() ||tipoDerecho.esEntero())
             {
                 return Type(TIPOREAL);
             }
@@ -849,6 +923,15 @@ class Modulo: public Expresion
 
         simbolo getValor(Entorno *e) override
         {
+            Type tmp = getTipo(e);   
+            if(tmp.esError())
+            {
+                simbolo resultado = simbolo(); 
+                resultado.linea = linea; 
+                resultado.columna = columna; 
+                resultado.tipo = tmp;
+                return resultado;
+            }            
             simbolo valor_izquierdo = izquierdo->getValor(e);
             simbolo valor_derecho = derecho->getValor(e);
             
@@ -868,23 +951,29 @@ class Modulo: public Expresion
         Type getTipo(Entorno *e) override
         {
 
-            if(izquierdo->getTipo(e).esCadena() || derecho->getTipo(e).esCadena())
+            Type tipoIzquierdo = izquierdo->getTipo(e);
+            Type tipoDerecho = derecho->getTipo(e);
+            if(tipoIzquierdo.esError() || tipoDerecho.esError())
+            {
+                return Type(TIPOERROR);
+            } 
+            if(tipoIzquierdo.esCadena() || tipoDerecho.esCadena())
             {
                 Error::registrarErrorSemantico(linea, columna," " ,
-                "Error en operación (%): No es permitida la operación " + izquierdo->getTipo(e).getNombre() + " % " + derecho->getTipo(e).getNombre());                
+                "Error en operación (%): No es permitida la operación " + tipoIzquierdo.getNombre() + " % " + tipoDerecho.getNombre());                
                 return Type(TIPOERROR);
             }
-            if(izquierdo->getTipo(e).esLogico() || derecho->getTipo(e).esLogico())
+            if(tipoIzquierdo.esLogico() || tipoDerecho.esLogico())
             {                     
                 Error::registrarErrorSemantico(linea, columna," " ,
-                "Error en operación (%): No es permitida la operación " + izquierdo->getTipo(e).getNombre() + " % " + derecho->getTipo(e).getNombre());                      
+                "Error en operación (%): No es permitida la operación " + tipoIzquierdo.getNombre() + " % " + tipoDerecho.getNombre());                      
                 return Type(TIPOERROR); // TIPOERROR;
             }
-            if(izquierdo->getTipo(e).esReal() || derecho->getTipo(e).esReal())
+            if(tipoIzquierdo.esReal() || tipoDerecho.esReal())
             {
                 return Type(TIPOREAL);
             }
-            if(izquierdo->getTipo(e).esEntero() && derecho->getTipo(e).esEntero())
+            if(tipoIzquierdo.esEntero() && tipoDerecho.esEntero())
             {
                 return Type(TIPOENTERO);
             }
@@ -906,13 +995,21 @@ class Menos: public Expresion
 
         simbolo getValor(Entorno *e) override
         {
-            simbolo valor = expr->getValor(e);            
-            
+            Type tmp = getTipo(e);   
+            if(tmp.esError())
+            {
+                simbolo resultado = simbolo(); 
+                resultado.linea = linea; 
+                resultado.columna = columna; 
+                resultado.tipo = tmp;
+                return resultado;
+            }    
 
+            simbolo valor = expr->getValor(e);                        
             simbolo resultado = simbolo(); 
             resultado.linea = linea; 
             resultado.columna = columna; 
-            resultado.tipo = getTipo(e);
+            resultado.tipo = tmp;
             resultado.valor_entero = valor.valor_entero * -1;
             resultado.valor_real = valor.valor_real * -1;                                 
             return resultado;
@@ -920,17 +1017,18 @@ class Menos: public Expresion
 
         Type getTipo(Entorno *e) override
         {
-            if(expr->getTipo(e).esReal())
+            Type tipo =expr->getTipo(e);
+            if(tipo.esReal())
             {
                 return Type(TIPOREAL);
             }
             else
-            if(expr->getTipo(e).esEntero())
+            if(tipo.esEntero())
             {
                 return Type(TIPOENTERO);
             }    
             Error::registrarErrorSemantico(linea, columna," " ,
-            "Error en operación (-): No es permitida la operación  - " + expr->getTipo(e).getNombre()); 
+            "Error en operación (-): No es permitida la operación  - " + tipo.getNombre()); 
             return Type(TIPOERROR);        
 
         }
@@ -1006,12 +1104,14 @@ class Relacional: public Expresion
 
         Type getTipo(Entorno *e) override
         {
-            if( izquierdo->getTipo(e).esNumerico() && derecho->getTipo(e).esNumerico())
+            Type tipoIzquierdo = izquierdo->getTipo(e);
+            Type tipoDerecho = derecho->getTipo(e);
+            if( tipoIzquierdo.esNumerico() && tipoDerecho.esNumerico())
             {
                 return Type(TIPOLOGICO);
             }
             Error::registrarErrorSemantico(linea, columna," " ,
-            "Error en operación ("+operacion+"): No es permitida la operación " + izquierdo->getTipo(e).getNombre() + " "+operacion+" " + derecho->getTipo(e).getNombre());            
+            "Error en operación ("+operacion+"): No es permitida la operación " + tipoIzquierdo.getNombre() + " "+operacion+" " + tipoDerecho.getNombre());            
             return Type(TIPOERROR);
         }       
 };
@@ -1031,23 +1131,34 @@ class Negacion: public Expresion
 
         simbolo getValor(Entorno *e) override
         {
+            Type tmp = getTipo(e);   
+            if(tmp.esError())
+            {
+                simbolo resultado = simbolo(); 
+                resultado.linea = linea; 
+                resultado.columna = columna; 
+                resultado.tipo = tmp;
+                return resultado;
+            }  
+
             simbolo valor = expr->getValor(e);
             simbolo resultado = simbolo(); 
             resultado.linea = linea; 
             resultado.columna = columna; 
-            resultado.tipo = getTipo(e);
+            resultado.tipo = tmp;
             resultado.valor_booleano =  ! valor.valor_booleano;
             return resultado;
         }
 
         Type getTipo(Entorno *e) override
         {
-            if(expr->getTipo(e).esLogico())
+            Type tipo = expr->getTipo(e);
+            if(tipo.esLogico())
             {
                 return Type(TIPOLOGICO);
             }   
             Error::registrarErrorSemantico(linea, columna," " ,
-            "Error en operación (!): No es permitida la operación  ! " + expr->getTipo(e).getNombre()); 
+            "Error en operación (!): No es permitida la operación  ! " + tipo.getNombre()); 
             return Type(TIPOERROR);        
 
         }
@@ -1076,25 +1187,30 @@ class Logica: public Expresion
             resultado.linea = linea; 
             resultado.columna = columna; 
             resultado.tipo = getTipo(e);
-            if(operacion == "||")
+            if(!resultado.tipo.esError())
             {
-                resultado.valor_booleano =  izquierda->getValor(e).valor_booleano || derecha->getValor(e).valor_booleano ;
-            }            
-            if(operacion == "&&")
-            {
-                resultado.valor_booleano =  izquierda->getValor(e).valor_booleano && derecha->getValor(e).valor_booleano ;
-            }                        
+                if(operacion == "||")
+                {
+                    resultado.valor_booleano =  izquierda->getValor(e).valor_booleano || derecha->getValor(e).valor_booleano ;
+                }            
+                if(operacion == "&&")
+                {
+                    resultado.valor_booleano =  izquierda->getValor(e).valor_booleano && derecha->getValor(e).valor_booleano ;
+                } 
+            }                       
             return resultado;
         }
 
         Type getTipo(Entorno *e) override
         {
-            if(izquierda->getTipo(e).esLogico()  && derecha->getTipo(e).esLogico())
+            Type tipoIzquierdo = izquierda->getTipo(e);
+            Type tipoDerecho = derecha->getTipo(e);
+            if(tipoIzquierdo.esLogico()  && tipoDerecho.esLogico())
             {
                 return Type(TIPOLOGICO);
             }   
             Error::registrarErrorSemantico(linea, columna," " ,
-            "Error en operación ("+operacion+"): No es permitida la operación  "+ izquierda->getTipo(e).getNombre() + " " + operacion + " "+ derecha->getTipo(e).getNombre()); 
+            "Error en operación ("+operacion+"): No es permitida la operación  "+ tipoIzquierdo.getNombre() + " " + operacion + " "+ tipoDerecho.getNombre()); 
             return Type(TIPOERROR);        
 
         }
