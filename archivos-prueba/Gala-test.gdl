@@ -7,7 +7,7 @@ DEFINICIONES
   real f
   cadena cad
   posicion p1,p2  
-  posicion p1,p2
+  
         
   # CONSTANTES: se inicializan y se pueden usar en todos los bloques
     
@@ -20,19 +20,17 @@ DEFINICIONES
   
   # Algunos errores semánticos de Definiciones
   
-  C1 = b + 1           # Err. Sem.: el identificador b no está declarado    
-  C2 = 30 % 2.0        # Err. Sem.: la operación módulo (%) con tipo real  
+  #C1 = 10 % 1.0           # Err. Sem.: el identificador b no está declarado    
+  #C1 = ! b            # Err. Sem.: el identificador b no está declarado    
+  #C2 = 30 % 2.0        # Err. Sem.: la operación módulo (%) con tipo real  
 
-  escribir P
-  ; 
 
 CONFIGURACION
   
   Dimension D  
   entrada INICIO    
   salida FIN
-  pausa P
-  ;
+
   
   # Algunos errores semánticos de configuración
   
@@ -54,7 +52,7 @@ OBSTACULOS
     
     p1 = <0,D-1>
     p2 = <6,4>    
-    ;
+    
     
     escribir MSG_OBS
     
@@ -64,42 +62,8 @@ OBSTACULOS
     repite 3
       sur 1
       obstaculo
-    finrepite
-    
-    repite 3
-      oeste 1
-      obstaculo
-    finrepite
-    ;
-    sur 1
-    obstaculo    
-    
-    obstaculo p2
-    repite 4
-      oeste 1
-      obstaculo
-    finrepite
-    
-    repite 5
-      norte 1
-      obstaculo
-    finrepite
-    
-    repite 2
-      este 1
-      obstaculo
-    finrepite
-    
-    n = 0       # Si n > 0, el laberinto es imposible
-    
-    si n > 0    
-    entonces
-      sur 1     # ESCENARIO 2
-    sino
-      este 1    # ESCENARIO 1    
-    finsi
-    
-    obstaculo
+    finrepite    
+
     
 EJEMPLOS
 
@@ -125,7 +89,7 @@ EJEMPLOS
         norte 2
         oeste 3
     finejemplo
-    x
+    
 
     ejemplo EJEMPLO_3               # Ejemplo 3
         cad="Soy Ejemplo 3"

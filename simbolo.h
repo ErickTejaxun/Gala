@@ -934,8 +934,6 @@ class Modulo: public Expresion
             }            
             simbolo valor_izquierdo = izquierdo->getValor(e);
             simbolo valor_derecho = derecho->getValor(e);
-            
-
             simbolo resultado = simbolo(); 
             resultado.linea = linea; 
             resultado.columna = columna; 
@@ -953,30 +951,13 @@ class Modulo: public Expresion
 
             Type tipoIzquierdo = izquierdo->getTipo(e);
             Type tipoDerecho = derecho->getTipo(e);
-            if(tipoIzquierdo.esError() || tipoDerecho.esError())
-            {
-                return Type(TIPOERROR);
-            } 
-            if(tipoIzquierdo.esCadena() || tipoDerecho.esCadena())
-            {
-                Error::registrarErrorSemantico(linea, columna," " ,
-                "Error en operación (%): No es permitida la operación " + tipoIzquierdo.getNombre() + " % " + tipoDerecho.getNombre());                
-                return Type(TIPOERROR);
-            }
-            if(tipoIzquierdo.esLogico() || tipoDerecho.esLogico())
-            {                     
-                Error::registrarErrorSemantico(linea, columna," " ,
-                "Error en operación (%): No es permitida la operación " + tipoIzquierdo.getNombre() + " % " + tipoDerecho.getNombre());                      
-                return Type(TIPOERROR); // TIPOERROR;
-            }
-            if(tipoIzquierdo.esReal() || tipoDerecho.esReal())
-            {
-                return Type(TIPOREAL);
-            }
             if(tipoIzquierdo.esEntero() && tipoDerecho.esEntero())
             {
                 return Type(TIPOENTERO);
             }
+            Error::registrarErrorSemantico(linea, columna," " ,
+            "Error en operación (%): No es permitida la operación " + tipoIzquierdo.getNombre() + " % " + tipoDerecho.getNombre());                
+            return Type(TIPOERROR);            
 
         }
 };
@@ -1667,19 +1648,19 @@ class PonerObstaculo: public Instruccion
                         	else
                         	{
                                 Error::registrarErrorSemantico(linea, columna," " ,
-                                "Error: Instruccion Obstaculo: La posición ("+ to_string(y_posicion)+" , "+to_string(x_posicion ) +") ocupada.");
+                                "Error: Instruccion Obstaculo: La posición ("+ to_string(y_posicion)+" , "+to_string(x_posicion ) +") se encuentra ocupada.");
                         	}
                         }
                         else
                         {
                             Error::registrarErrorSemantico(linea, columna," " ,
-                            "Error: Instruccion Obstaculo: El valor de columna es incorrecto, debe 0 =< "+ to_string(x_posicion)+" < "+to_string(limite ));
+                            "Error: Instruccion Obstaculo: El valor de columna es incorrecto. Coordena ("+ to_string(y_posicion)+", "+to_string(x_posicion) +") está fuera del tablero" );
                         }
                     }
                     else
                     {
                         Error::registrarErrorSemantico(linea, columna," " ,
-                        "Error: Instruccion Obstaculo: El valor de fila es incorrecto, debe 0 =< "+ to_string(y_posicion)+" < "+to_string(limite ) );
+                        "Error: Instruccion Obstaculo: El valor de fila es incorrecto. Coordena ("+ to_string(y_posicion)+", "+to_string(x_posicion) +") está fuera del tablero" );
                     }
                 }
             }
@@ -1688,8 +1669,7 @@ class PonerObstaculo: public Instruccion
                 simbolo valor = expr->getValor(e);
                 if(valor.tipo.esPosicion())
                 {
-                    /*Aquí escribimos el código para posicionar un obstaculo en esta posicion*/
-                	simbolo *posicion_obstaculo = e->tabla.obtenerSimboloLocal("POSICION_RELATIVA_OBSTACULO", linea);
+                    /*Aquí escribimos el código para posicionar un obstaculo en esta posicion*/                	
                     int y_posicion = valor.valor_posicion[0];
                     int x_posicion = valor.valor_posicion[1];
                     int limite = e->tabla.obtenerSimboloLocal("TAMANO_TABLERO_INIT", 0)->valor_entero;
@@ -1702,8 +1682,8 @@ class PonerObstaculo: public Instruccion
                         	//cout<<"Tipo casilla "<<estado_casilla<<endl;
                         	if(estado_casilla==CASILLA_VACIA)
                         	{
-								posicion_obstaculo->valor_posicion[0]+=y_posicion;
-								posicion_obstaculo->valor_posicion[1]+=x_posicion;
+								/*posicion_obstaculo->valor_posicion[0]+=y_posicion;
+								posicion_obstaculo->valor_posicion[1]+=x_posicion;*/
 								string mensaje = "\tentornoPonerObstaculo(" + to_string(y_posicion) + ", " +to_string(x_posicion) + ");\n";
 								e->escribir_fichero(mensaje);
 								e->tablero[y_posicion * limite + x_posicion] = CASILLA_OBSTACULO;
@@ -1711,19 +1691,19 @@ class PonerObstaculo: public Instruccion
                         	else
                         	{
                                 Error::registrarErrorSemantico(linea, columna," " ,
-                                "Error: Instruccion Obstaculo: La posición ("+ to_string(y_posicion)+" , "+to_string(x_posicion ) +") ocupada.");
+                                "Error: Instruccion Obstaculo: La posición ("+ to_string(y_posicion)+" , "+to_string(x_posicion ) +") se encuentra ocupada.");
                         	}
                         }
                         else
                         {
                             Error::registrarErrorSemantico(linea, columna," " ,
-                            "Error: Instruccion Obstaculo: El valor de columna es incorrecto, debe 0 =< "+ to_string(x_posicion)+" < "+to_string(limite ));
+                            "Error: Instruccion Obstaculo: El valor de columna es incorrecto. Coordena ("+ to_string(y_posicion)+", "+to_string(x_posicion) +") está fuera del tablero" );
                         }
                     }
                     else
                     {
                         Error::registrarErrorSemantico(linea, columna," " ,
-                        "Error: Instruccion Obstaculo: El valor de fila es incorrecto, debe 0 =< "+ to_string(y_posicion)+" < "+to_string(limite ) );
+                        "Error: Instruccion Obstaculo: El valor de fila es incorrecto. Coordena ("+ to_string(y_posicion)+", "+to_string(x_posicion) +") está fuera del tablero"  );
                     }
 
                 }
@@ -1812,14 +1792,14 @@ class Establecer_entrada: public Instruccion
         	{
         		simbolo *simbolo_dimension = e->tabla.obtenerSimboloLocal("ENTRADA_TABLERO_INIT", linea);
         		/*Verificamos que esté en el borde del tablero*/
-        		int tamano_tablero = e->tabla.obtenerSimboloLocal("TAMANO_TABLERO_INIT", 0)->valor_entero;
-
+        		int tamano_tablero = e->tabla.obtenerSimboloLocal("TAMANO_TABLERO_INIT", 0)->valor_entero;                
         		int y_coordenada = coordena.valor_posicion[0];
         		int x_coordenada = coordena.valor_posicion[1];
 
         		if( y_coordenada == 0 || y_coordenada == (tamano_tablero -1) )
         		{
-        			if( x_coordenada >= 0 && x_coordenada < tamano_tablero )
+                    /*Que esté dentro del tablero*/
+        			if( x_coordenada >= 0 && x_coordenada <= (tamano_tablero-1) )
         			{
                 		simbolo_dimension->valor_posicion[0] =coordena.valor_posicion[0];
                 		simbolo_dimension->valor_posicion[1] =coordena.valor_posicion[1];
@@ -1833,9 +1813,11 @@ class Establecer_entrada: public Instruccion
         		}
         		else
         		{
-        			if( y_coordenada >= 0 && y_coordenada < tamano_tablero )
+                    /*Comprobamos que y esté dentro del tablero*/
+        			if( y_coordenada >= 0 && y_coordenada <= (tamano_tablero-1))
         			{
-            			if( x_coordenada >= 0 || x_coordenada < tamano_tablero )
+                        /*Corrobamos que la entrada esté dentro del tablero*/
+            			if( x_coordenada == 0 || x_coordenada == (tamano_tablero -1) )
             			{
                     		simbolo_dimension->valor_posicion[0] =coordena.valor_posicion[0];
                     		simbolo_dimension->valor_posicion[1] =coordena.valor_posicion[1];
@@ -1887,7 +1869,8 @@ class Establecer_salida: public Instruccion
 
         		if( y_coordenada == 0 || y_coordenada == (tamano_tablero -1) )
         		{
-        			if( x_coordenada >= 0 && x_coordenada < tamano_tablero )
+                    /*Verificamos que esté dentro del tablero*/
+        			if( x_coordenada >= 0 && x_coordenada <= (tamano_tablero-1) )
         			{
                 		simbolo_dimension->valor_posicion[0] =coordena.valor_posicion[0];
                 		simbolo_dimension->valor_posicion[1] =coordena.valor_posicion[1];
@@ -1902,9 +1885,10 @@ class Establecer_salida: public Instruccion
         		}
         		else
         		{
-        			if( y_coordenada >= 0 && y_coordenada < tamano_tablero )
+                    /*Corroboramos que esté dentro del tablero*/
+        			if( y_coordenada >= 0 && y_coordenada <= (tamano_tablero -1) )
         			{
-            			if( x_coordenada >= 0 || x_coordenada < tamano_tablero )
+            			if( x_coordenada == 0 || x_coordenada == (tamano_tablero -1) )
             			{
                     		simbolo_dimension->valor_posicion[0] =coordena.valor_posicion[0];
                     		simbolo_dimension->valor_posicion[1] =coordena.valor_posicion[1];
@@ -2096,7 +2080,7 @@ class Movimiento_jugador: public Instruccion
 							{
 								posicion_obstaculo->valor_posicion[1] = x - valorMovimiento;
 								/*Ahora escribimos la cadena*/
-								string cadena = "\entornoPonerFiguraSalida(" + to_string(posicion_obstaculo->valor_posicion[0]) + ", "+ to_string(posicion_obstaculo->valor_posicion[1])+");\n";
+								string cadena = "\tentornoPonerFiguraSalida(" + to_string(posicion_obstaculo->valor_posicion[0]) + ", "+ to_string(posicion_obstaculo->valor_posicion[1])+");\n";
 								e->escribir_fichero(cadena);
 								e->estado_juego= GANADO;
 							}
