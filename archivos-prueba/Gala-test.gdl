@@ -62,7 +62,30 @@ OBSTACULOS
     repite 3
       sur 1
       obstaculo
-    finrepite    
+    finrepite   
+
+    repite 3
+      oeste 1
+      obstaculo
+    finrepite
+    sur 1
+    obstaculo    
+    
+    obstaculo p2
+    repite 4
+      oeste 1
+      obstaculo
+    finrepite
+    
+    repite 5
+      norte 1
+      obstaculo
+    finrepite
+    
+    repite 2
+      este 1
+      obstaculo
+    finrepite     
 
     
 EJEMPLOS

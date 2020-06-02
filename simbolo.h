@@ -1682,8 +1682,9 @@ class PonerObstaculo: public Instruccion
                         	//cout<<"Tipo casilla "<<estado_casilla<<endl;
                         	if(estado_casilla==CASILLA_VACIA)
                         	{
-								/*posicion_obstaculo->valor_posicion[0]+=y_posicion;
-								posicion_obstaculo->valor_posicion[1]+=x_posicion;*/
+                                simbolo *posicion_obstaculo = e->tabla.obtenerSimboloLocal("POSICION_RELATIVA_OBSTACULO", linea);
+								posicion_obstaculo->valor_posicion[0]=y_posicion;
+								posicion_obstaculo->valor_posicion[1]=x_posicion;
 								string mensaje = "\tentornoPonerObstaculo(" + to_string(y_posicion) + ", " +to_string(x_posicion) + ");\n";
 								e->escribir_fichero(mensaje);
 								e->tablero[y_posicion * limite + x_posicion] = CASILLA_OBSTACULO;
@@ -2044,6 +2045,7 @@ class Movimiento_jugador: public Instruccion
 								posicion_obstaculo->valor_posicion[1] = x + valorMovimiento;
 								/*Ahora escribimos la cadena*/
 								string cadena = "\tentornoPonerFiguraSalida(" + to_string(posicion_obstaculo->valor_posicion[0]) + ", "+ to_string(posicion_obstaculo->valor_posicion[1])+");\n";
+                                cadena = cadena + "\n\tentornoMostrarMensaje (\"  ¡ Lo conseguiste !    \");";
 								e->escribir_fichero(cadena);
 								e->estado_juego= GANADO;
 							}
@@ -2052,6 +2054,7 @@ class Movimiento_jugador: public Instruccion
 								posicion_obstaculo->valor_posicion[1] = x + valorMovimiento;
 								/*Ahora escribimos la cadena*/
 								string cadena = "\tentornoPonerChoque(" + to_string(posicion_obstaculo->valor_posicion[0]) + ", "+ to_string(posicion_obstaculo->valor_posicion[1])+");\n";
+                                cadena  = cadena +"\n\nentornoMostrarMensaje (\"  ¡ Mala suerte !    \");";
 								e->escribir_fichero(cadena);
 								e->estado_juego= PERDIDO;
 							}
@@ -2081,6 +2084,7 @@ class Movimiento_jugador: public Instruccion
 								posicion_obstaculo->valor_posicion[1] = x - valorMovimiento;
 								/*Ahora escribimos la cadena*/
 								string cadena = "\tentornoPonerFiguraSalida(" + to_string(posicion_obstaculo->valor_posicion[0]) + ", "+ to_string(posicion_obstaculo->valor_posicion[1])+");\n";
+                                cadena = cadena + "\n\tentornoMostrarMensaje (\"  ¡ Lo conseguiste !    \");";
 								e->escribir_fichero(cadena);
 								e->estado_juego= GANADO;
 							}
@@ -2089,6 +2093,7 @@ class Movimiento_jugador: public Instruccion
 								posicion_obstaculo->valor_posicion[1] = x - valorMovimiento;
 								/*Ahora escribimos la cadena*/
 								string cadena = "\tentornoPonerChoque(" + to_string(posicion_obstaculo->valor_posicion[0]) + ", "+ to_string(posicion_obstaculo->valor_posicion[1])+");\n";
+                                cadena  = cadena +"\n\nentornoMostrarMensaje (\"  ¡ Mala suerte !    \");";
 								e->escribir_fichero(cadena);
 								e->estado_juego= PERDIDO;
 							}
@@ -2118,6 +2123,7 @@ class Movimiento_jugador: public Instruccion
 								posicion_obstaculo->valor_posicion[0] = y - valorMovimiento;
 								/*Ahora escribimos la cadena*/
 								string cadena = "\tentornoPonerFiguraSalida(" + to_string(posicion_obstaculo->valor_posicion[0]) + ", "+ to_string(posicion_obstaculo->valor_posicion[1])+");\n";
+                                cadena = cadena + "\n\tentornoMostrarMensaje (\"  ¡ Lo conseguiste !    \");";
 								e->escribir_fichero(cadena);
 								e->estado_juego= GANADO;
 							}
@@ -2127,6 +2133,7 @@ class Movimiento_jugador: public Instruccion
 								posicion_obstaculo->valor_posicion[0] = y - valorMovimiento;
 								/*Ahora escribimos la cadena*/
 								string cadena = "\tentornoPonerChoque(" + to_string(posicion_obstaculo->valor_posicion[0]) + ", "+ to_string(posicion_obstaculo->valor_posicion[1])+");\n";
+                                cadena  = cadena +"\n\nentornoMostrarMensaje (\"  ¡ Mala suerte !    \");";
 								e->escribir_fichero(cadena);
 								e->estado_juego= PERDIDO;
 							}
@@ -2159,6 +2166,7 @@ class Movimiento_jugador: public Instruccion
 								posicion_obstaculo->valor_posicion[0] = y + valorMovimiento;
 								/*Ahora escribimos la cadena*/
 								string cadena = "\tentornoPonerFiguraSalida(" + to_string(posicion_obstaculo->valor_posicion[0]) + ", "+ to_string(posicion_obstaculo->valor_posicion[1])+");\n";
+                                cadena = cadena + "\n\tentornoMostrarMensaje (\"  ¡ Lo conseguiste !    \");";
 								e->escribir_fichero(cadena);
 								e->estado_juego= GANADO;
 							}
@@ -2168,6 +2176,7 @@ class Movimiento_jugador: public Instruccion
 								posicion_obstaculo->valor_posicion[0] = y + valorMovimiento;
 								/*Ahora escribimos la cadena*/
 								string cadena = "\tentornoPonerChoque(" + to_string(posicion_obstaculo->valor_posicion[0]) + ", "+ to_string(posicion_obstaculo->valor_posicion[1])+");\n";
+                                cadena  = cadena +"\n\nentornoMostrarMensaje (\"  ¡ Mala suerte !    \");";
 								e->escribir_fichero(cadena);
 								e->estado_juego= PERDIDO;
 							}
