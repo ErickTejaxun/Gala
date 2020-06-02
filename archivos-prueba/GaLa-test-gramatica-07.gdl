@@ -74,35 +74,21 @@ OBSTACULOS # BLOQUE 3
    
     
   # Obtáculos absolutos
-    repite 10    
-    obstaculo
-    sur 1   
+    
+    repite 8
+        repite 3
+        obstaculo
+        finrepite
+    
+    sur 1
+    este 1   
     finrepite
 
     
-  # Escribir mensajes
-    escribir "Bloque Obstaculos"
-    escribir c1
-    escribir e0
-    escribir e0 + 2   
+  # Escribir mensajes    
 
-    si 1!=2 
-    entonces 
-      escribir "Si entrando"
-    sino 
-      escribir "Else entrando"
-    finsi
+    
 
-    repite C5 +10
-    indice = indice + 1  
-    tmp = 1
-    contador = 1
-      repite indice
-        tmp = tmp * contador
-        contador = contador +1 
-      finrepite
-      escribir indice +"! = " + tmp
-    finrepite
 
 
 EJEMPLOS # BLOQUE 4

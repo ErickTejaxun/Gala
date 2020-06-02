@@ -1457,7 +1457,7 @@ class Obstaculo_movimiento: public Instruccion
 						else
 						{
 							Error::registrarErrorSemantico(linea, columna," " ,
-							"Error: Instruccion "+movimiento + ": El valor debe ser menor al tamaño máximo del tablero." + to_string(x+valorMovimiento) +" > " + to_string(maximo));
+							"Error: Instruccion "+movimiento + ": El valor debe ser menor al tamaño máximo del tablero." + to_string(x+valorMovimiento) +" > " + to_string(maximo-1));
 						}
 					}
 					else
@@ -1496,7 +1496,7 @@ class Obstaculo_movimiento: public Instruccion
 						else
 						{
 							Error::registrarErrorSemantico(linea, columna," " ,
-							"Error: Instruccion "+movimiento + ": El valor debe ser menor al tamaño máximo del tablero. "  + to_string(x+valorMovimiento) +" > " + to_string(maximo));
+							"Error: Instruccion "+movimiento + ": El valor debe ser menor al tamaño máximo del tablero. "  + to_string(y+valorMovimiento) +" > " + to_string(maximo-1));
 						}
 					}
 				}
@@ -1696,6 +1696,7 @@ class Establecer_entrada: public Instruccion
         		simbolo *simbolo_dimension = e->tabla.obtenerSimboloLocal("ENTRADA_TABLERO_INIT", linea);
         		/*Verificamos que esté en el borde del tablero*/
         		int tamano_tablero = e->tabla.obtenerSimboloLocal("TAMANO_TABLERO_INIT", 0)->valor_entero;
+
         		int y_coordenada = coordena.valor_posicion[0];
         		int x_coordenada = coordena.valor_posicion[1];
 
@@ -1705,6 +1706,7 @@ class Establecer_entrada: public Instruccion
         			{
                 		simbolo_dimension->valor_posicion[0] =coordena.valor_posicion[0];
                 		simbolo_dimension->valor_posicion[1] =coordena.valor_posicion[1];
+                		e->tablero[y_coordenada * tamano_tablero + x_coordenada] = CASILLA_ENTRADA;
         			}
         			else
         			{
@@ -1720,6 +1722,7 @@ class Establecer_entrada: public Instruccion
             			{
                     		simbolo_dimension->valor_posicion[0] =coordena.valor_posicion[0];
                     		simbolo_dimension->valor_posicion[1] =coordena.valor_posicion[1];
+                    		e->tablero[y_coordenada * tamano_tablero + x_coordenada] = CASILLA_ENTRADA;
             			}
             			else
             			{
@@ -1771,6 +1774,8 @@ class Establecer_salida: public Instruccion
         			{
                 		simbolo_dimension->valor_posicion[0] =coordena.valor_posicion[0];
                 		simbolo_dimension->valor_posicion[1] =coordena.valor_posicion[1];
+                		e->tablero[y_coordenada * tamano_tablero + x_coordenada] = CASILLA_SALIDA;
+
         			}
         			else
         			{
@@ -1786,6 +1791,7 @@ class Establecer_salida: public Instruccion
             			{
                     		simbolo_dimension->valor_posicion[0] =coordena.valor_posicion[0];
                     		simbolo_dimension->valor_posicion[1] =coordena.valor_posicion[1];
+                    		e->tablero[y_coordenada * tamano_tablero + x_coordenada] = CASILLA_SALIDA;
             			}
             			else
             			{
@@ -2091,7 +2097,8 @@ class Programa:public Instruccion
             fichero << encabezado;
             fichero.close();
 
-            string cierre = "\n\treturn 0;\n}";
+
+            string cierre = "\n\nentornoTerminar();\nentornoPausa(3);\n\treturn 0;\n}";
             e->escribir_fichero(cierre);
             e->cerrarFichero();
 

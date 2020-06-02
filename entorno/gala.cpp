@@ -7,102 +7,41 @@ using namespace std;
 
 int main(int argc, char** argv)
 {
-	// CONFIGURACIÓN DEL ENTORNO
-	entornoIniciar(7);
-	entornoPonerEntrada(5,6,0.400);
-	entornoPonerSalida(0,2);
+/*----------------Estableciendo tamaño del tablero-----------*/
 
-	entornoMostrarMensaje("OBSTACULOS");
-	entornoPonerObstaculo(0,6);
-	entornoPonerObstaculo(1,6);
-	entornoPonerObstaculo(2,6);
-	entornoPonerObstaculo(3,6);
-	entornoPonerObstaculo(3,5);
-	entornoPonerObstaculo(3,4);
-	entornoPonerObstaculo(3,3);
-	entornoPonerObstaculo(4,3);
-	entornoPonerObstaculo(6,4);
-	entornoPonerObstaculo(6,3);
-	entornoPonerObstaculo(6,2);
-	entornoPonerObstaculo(6,1);
-	entornoPonerObstaculo(6,0);
-	entornoPonerObstaculo(5,0);
-	entornoPonerObstaculo(4,0);
-	entornoPonerObstaculo(3,0);
-	entornoPonerObstaculo(2,0);
-	entornoPonerObstaculo(1,0);
-	entornoPonerObstaculo(1,1);
-	entornoPonerObstaculo(1,2);
-	entornoPonerObstaculo(1,3);
-	 
-/* ------- RECORRIDO: EJEMPLO_1 ------- */
+	entornoIniciar(10);
+	entornoPonerEntrada(2,0,0.250000);
+	entornoPonerSalida(2,9);
+	entornoPonerObstaculo(1, 0);
+	entornoPonerObstaculo(2, 1);
+	entornoPonerObstaculo(3, 2);
+	entornoPonerObstaculo(4, 3);
+	entornoPonerObstaculo(5, 4);
+	entornoPonerObstaculo(6, 5);
+	entornoPonerObstaculo(7, 6);
+	entornoPonerObstaculo(8, 7);
 
-	entornoPonerEntrada(5,6,0.400);
-	entornoPonerSalida(0,2);
+	/*Comenzando ejemplo*/
+	entornoPonerEntrada(2,0,0.250000);
+	entornoPonerSalida(2,9);
+	entornoMostrarMensaje("caso1");
+	entornoPonerFigura(1, 1,0.250000);
+	entornoPonerFigura(1, 1,0.250000);
+	entornoPonerFigura(2, 2,0.250000);
+	entornoPonerFigura(2, 2,0.250000);
+	entornoPonerFigura(1, 1,0.250000);
+	entornoMostrarMensaje("Fin");
 
-	entornoMostrarMensaje("Soy Ejemplo 1 erick");
-	entornoPonerFigura(5,5,0.40);
-	entornoPonerFigura(5,4,0.40);
-	entornoPonerFigura(5,3,0.40);
-	entornoPonerFigura(5,2,0.40);
-	entornoPonerFigura(4,2,0.40);
-	entornoPonerFigura(3,2,0.40);
-	entornoPonerFigura(2,2,0.40);
-	entornoPonerFigura(2,3,0.40);
-	entornoPonerFigura(2,4,0.40);
-	entornoPonerFigura(1,4,0.40);
-	entornoPonerFigura(0,4,0.40);
-	entornoPonerFigura(0,3,0.40);
-	entornoPonerFigura(0,2,0.40);
-	entornoPonerFiguraSalida(0,2);
-	entornoMostrarMensaje ("  ¡ Lo conseguiste !    ");
-	 
-/* ------- RECORRIDO: EJEMPLO_2 ------- */
+	/*Comenzando ejemplo*/
+	entornoPonerEntrada(2,0,0.250000);
+	entornoPonerSalida(2,9);
+	entornoPonerFigura(1, 1,0.250000);
+	entornoPonerFigura(2, 2,0.250000);
+	entornoPonerFigura(2, 2,0.250000);
+	entornoMostrarMensaje("Hola mundo");
 
-	//entornoPonerEntrada(5,6,0.400);
-	//entornoPonerSalida(0,2);
 
-	entornoMostrarMensaje("Soy Ejemplo 2");
-	entornoPonerFigura(4,6,0.40);
-	entornoPonerFigura(4,5,0.40);
-	entornoPonerFigura(4,4,0.40);
-	entornoPonerFigura(5,4,0.40);
-	entornoPonerFigura(5,3,0.40);
-	entornoPonerFigura(5,2,0.40);
-	entornoPonerFigura(5,1,0.40);
-	entornoPonerFigura(4,1,0.40);
-	entornoPonerFigura(3,1,0.40);
-	entornoPonerFigura(2,1,0.40);
-	entornoPonerFigura(2,2,0.40);
-	entornoPonerFigura(2,3,0.40);
-	entornoPonerFigura(2,4,0.40);
-	entornoPonerFigura(2,5,0.40);
-	entornoPonerFigura(1,5,0.40);
-	entornoPonerFigura(0,5,0.40);
-	entornoPonerFigura(0,4,0.40);
-	entornoPonerFigura(0,3,0.40);
-	entornoPonerFigura(0,2,0.40);
-	entornoPonerFiguraSalida(0,2);
-	entornoMostrarMensaje ("  ¡ Lo conseguiste !    ");
-	 
-/* ------- RECORRIDO: EJEMPLO_3 ------- */
-
-	entornoPonerEntrada(5,6,0.400);
-	entornoPonerSalida(0,2);
-
-	entornoMostrarMensaje("Soy Ejemplo 3");
-	entornoPonerFigura(5,5,0.40);
-	entornoPonerFigura(5,4,0.40);
-	entornoPonerFigura(5,3,0.40);
-	entornoPonerFigura(5,2,0.40);
-	entornoPonerFigura(5,1,0.40);
-	entornoPonerFigura(5,0,0.40);
-	entornoPonerChoque(5,0);
-	entornoMostrarMensaje ("  ¡ Mala suerte !    ");
-	entornoMostrarMensajeFin ("  ¡ Fin !    ");
-	entornoTerminar();
-
-	entornoPausa(1);
-
+entornoTerminar();
+entornoPausa(3);
 	return 0;
 }
