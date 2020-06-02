@@ -326,14 +326,16 @@ void crear_fichero(string path);
 int main(int argc, char *argv[])
 {
       n_lineas = 1;
-      if (argc != 3) 
+      if (argc != 2) 
       {
-            printf("Ejecutar de la forma %s entrada salida\n",argv[0]);            
+            printf("Ejecutar de la forma %s fichero_entrada \n",argv[0]);            
       }		
       else       
       {
             yyin=fopen(argv[1],"rt");
-            //yyout = fopen(argv[2],"wt");
+            string path_fichero_entrada(argv[1]);
+            string path = path_fichero_entrada.substr(0, path_fichero_entrada.find(".")) +".cpp"; 
+            cout<< "Archivo de salida: "<<path<<endl;
             n_lineas = 1;
             if(yyin==0)
             {
@@ -349,8 +351,7 @@ int main(int argc, char *argv[])
                   printf("\nNada que ejecutar\n");                  
             }
             else
-            {
-                  string path(argv[2]);      
+            {                      
                   crear_fichero(path);            
                   global.path_fichero = path;
                   if(raiz->esInstruccion())

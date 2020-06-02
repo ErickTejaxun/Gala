@@ -26,6 +26,7 @@ extern vector<Error> listaErrores;
 
 enum TYPES { TIPOENTERO, TIPOREAL, TIPOLOGICO, TIPOCADENA, TIPOPOSICION, TIPOERROR};
 enum ESTADO { CASILLA_VACIA, CASILLA_OBSTACULO, CASILLA_SALIDA, CASILLA_ENTRADA };
+enum ESTADO_JUGADOR {NO_GANADO, GANADO, PERDIDO};
 class Error
 {
     public:
@@ -297,6 +298,7 @@ class Entorno
         string path_fichero = "";
         ofstream fichero;
         int *tablero;
+        int estado_juego = NO_GANADO;
         Entorno(Entorno * p)
         {
             padre = p;
@@ -1203,6 +1205,8 @@ class Declaracion: public Instruccion
         {     
             for (auto id : lista->data)
             {                
+            	/*Aquí recorremos el vector que es la lista de identificadores y
+            	 * creamos un número símbolo para cada uno de ellos.*/
                 simbolo *tmp = new simbolo();
                 tmp->linea = linea;
                 tmp->constante = false;
@@ -1236,10 +1240,7 @@ class Constante: public Instruccion
                 tmp.id = id;
                 if(e->tabla.insertarSimbolo(&tmp))
                 {
-                    /*if(tmp.tipo.esCadena())
-                    {
-                        cout<<tmp.valor_cadena<<endl;
-                    }*/
+                	/*Mensaje de error (Innecesario), ya ha sido implementado en la clase tabla.*/
                 }
             }
         }       
@@ -1892,14 +1893,12 @@ class Movimiento_jugador: public Instruccion
     public:
         string movimiento;
         Expresion *expr;
-        bool esEjemplo = false;
         Movimiento_jugador(int l, int c, string mov, Expresion *e)
         {
             linea = l;
             columna = c;
             movimiento = mov;
             expr = e;
-            esEjemplo = false;
         }
         Movimiento_jugador(int l, int c, string mov, Expresion *e, bool exm)
         {
@@ -1907,7 +1906,6 @@ class Movimiento_jugador: public Instruccion
             columna = c;
             movimiento = mov;
             expr = e;
-            esEjemplo = true;
         }
         void ejecutar(Entorno *e)override
         {
@@ -1915,7 +1913,8 @@ class Movimiento_jugador: public Instruccion
             simbolo valor = expr->getValor(e);
             if(valor.tipo.esNumerico())
             {
-            	if(!esEjemplo)
+            	/*Continuamos solo si el jugador no ha perdido o no ha llegado a la meta.*/
+            	if(e->estado_juego == NO_GANADO)
             	{
 					int valorMovimiento = 0;
 					if(valor.tipo.esEntero()){ valorMovimiento = valor.valor_entero;}
@@ -1931,11 +1930,31 @@ class Movimiento_jugador: public Instruccion
 					{
 						if(( x + valorMovimiento) < maximo)
 						{
-							posicion_obstaculo->valor_posicion[1] = x + valorMovimiento;
-							/*Ahora escribimos la cadena*/
-							string cadena = "\tentornoPonerFigura(" + to_string(posicion_obstaculo->valor_posicion[0]) + ", "+ to_string(posicion_obstaculo->valor_posicion[0])
-									+","+to_string(pausa)+");\n";
-							e->escribir_fichero(cadena);
+							if(e->tablero[y*maximo + (x+valorMovimiento)] == CASILLA_VACIA || e->tablero[y*maximo + (x+valorMovimiento)] == CASILLA_ENTRADA)
+							{
+								posicion_obstaculo->valor_posicion[1] = x + valorMovimiento;
+								/*Ahora escribimos la cadena*/
+								string cadena = "\tentornoPonerFigura(" + to_string(posicion_obstaculo->valor_posicion[0]) + ", "+ to_string(posicion_obstaculo->valor_posicion[1])
+										+","+to_string(pausa)+");\n";
+								e->escribir_fichero(cadena);
+							}
+							else
+							if(e->tablero[y*maximo + (x+valorMovimiento)] == CASILLA_SALIDA)
+							{
+								posicion_obstaculo->valor_posicion[1] = x + valorMovimiento;
+								/*Ahora escribimos la cadena*/
+								string cadena = "\tentornoPonerFiguraSalida(" + to_string(posicion_obstaculo->valor_posicion[0]) + ", "+ to_string(posicion_obstaculo->valor_posicion[1])+");\n";
+								e->escribir_fichero(cadena);
+								e->estado_juego= GANADO;
+							}
+							else
+							{
+								posicion_obstaculo->valor_posicion[1] = x + valorMovimiento;
+								/*Ahora escribimos la cadena*/
+								string cadena = "\tentornoPonerChoque(" + to_string(posicion_obstaculo->valor_posicion[0]) + ", "+ to_string(posicion_obstaculo->valor_posicion[1])+");\n";
+								e->escribir_fichero(cadena);
+								e->estado_juego= PERDIDO;
+							}
 						}
 						else
 						{
@@ -1946,13 +1965,33 @@ class Movimiento_jugador: public Instruccion
 					else
 					if(movimiento=="oeste")
 					{
-						if(( x + valorMovimiento) >= 0)
+						if(( x - valorMovimiento) >= 0)
 						{
-							posicion_obstaculo->valor_posicion[1] = x - valorMovimiento;
-							/*Ahora escribimos la cadena*/
-							string cadena = "\tentornoPonerFigura(" + to_string(posicion_obstaculo->valor_posicion[0]) + ", "+ to_string(posicion_obstaculo->valor_posicion[0])
-									+","+to_string(pausa)+");\n";
-							e->escribir_fichero(cadena);
+							if(e->tablero[y*maximo + (x-valorMovimiento)] == CASILLA_VACIA || e->tablero[y*maximo + (x-valorMovimiento)] == CASILLA_ENTRADA)
+							{
+								posicion_obstaculo->valor_posicion[1] = x - valorMovimiento;
+								/*Ahora escribimos la cadena*/
+								string cadena = "\tentornoPonerFigura(" + to_string(posicion_obstaculo->valor_posicion[0]) + ", "+ to_string(posicion_obstaculo->valor_posicion[1])
+										+","+to_string(pausa)+");\n";
+								e->escribir_fichero(cadena);
+							}
+							else
+							if(e->tablero[y*maximo + (x-valorMovimiento)] == CASILLA_SALIDA)
+							{
+								posicion_obstaculo->valor_posicion[1] = x - valorMovimiento;
+								/*Ahora escribimos la cadena*/
+								string cadena = "\entornoPonerFiguraSalida(" + to_string(posicion_obstaculo->valor_posicion[0]) + ", "+ to_string(posicion_obstaculo->valor_posicion[1])+");\n";
+								e->escribir_fichero(cadena);
+								e->estado_juego= GANADO;
+							}
+							else
+							{
+								posicion_obstaculo->valor_posicion[1] = x - valorMovimiento;
+								/*Ahora escribimos la cadena*/
+								string cadena = "\tentornoPonerChoque(" + to_string(posicion_obstaculo->valor_posicion[0]) + ", "+ to_string(posicion_obstaculo->valor_posicion[1])+");\n";
+								e->escribir_fichero(cadena);
+								e->estado_juego= PERDIDO;
+							}
 						}
 						else
 						{
@@ -1965,11 +2004,34 @@ class Movimiento_jugador: public Instruccion
 					{
 						if(( y - valorMovimiento) >= 0)
 						{
-							posicion_obstaculo->valor_posicion[0] = y - valorMovimiento;
-							/*Ahora escribimos la cadena*/
-							string cadena = "\tentornoPonerFigura(" + to_string(posicion_obstaculo->valor_posicion[0]) + ", "+ to_string(posicion_obstaculo->valor_posicion[0])
-									+","+to_string(pausa)+");\n";
-							e->escribir_fichero(cadena);
+							if(e->tablero[(y - valorMovimiento)*maximo + x] == CASILLA_VACIA || e->tablero[(y - valorMovimiento)*maximo + x] == CASILLA_ENTRADA)
+							{
+								posicion_obstaculo->valor_posicion[0] = y - valorMovimiento;
+								/*Ahora escribimos la cadena*/
+								string cadena = "\tentornoPonerFigura(" + to_string(posicion_obstaculo->valor_posicion[0]) + ", "+ to_string(posicion_obstaculo->valor_posicion[1])
+										+","+to_string(pausa)+");\n";
+								e->escribir_fichero(cadena);
+							}
+							else
+							if(e->tablero[(y - valorMovimiento)*maximo + x] ==  CASILLA_SALIDA)
+							{
+								posicion_obstaculo->valor_posicion[0] = y - valorMovimiento;
+								/*Ahora escribimos la cadena*/
+								string cadena = "\tentornoPonerFiguraSalida(" + to_string(posicion_obstaculo->valor_posicion[0]) + ", "+ to_string(posicion_obstaculo->valor_posicion[1])+");\n";
+								e->escribir_fichero(cadena);
+								e->estado_juego= GANADO;
+							}
+							else
+							{
+
+								posicion_obstaculo->valor_posicion[0] = y - valorMovimiento;
+								/*Ahora escribimos la cadena*/
+								string cadena = "\tentornoPonerChoque(" + to_string(posicion_obstaculo->valor_posicion[0]) + ", "+ to_string(posicion_obstaculo->valor_posicion[1])+");\n";
+								e->escribir_fichero(cadena);
+								e->estado_juego= PERDIDO;
+							}
+
+
 						}
 						else
 						{
@@ -1982,11 +2044,33 @@ class Movimiento_jugador: public Instruccion
 					{
 						if(( y + valorMovimiento) < maximo)
 						{
-							posicion_obstaculo->valor_posicion[0] = y + valorMovimiento;
-							/*Ahora escribimos la cadena*/
-							string cadena = "\tentornoPonerFigura(" + to_string(posicion_obstaculo->valor_posicion[0]) + ", "+ to_string(posicion_obstaculo->valor_posicion[0])
-									+","+to_string(pausa)+");\n";
-							e->escribir_fichero(cadena);
+
+							if(e->tablero[(y + valorMovimiento)*maximo + x] == CASILLA_VACIA || e->tablero[(y + valorMovimiento)*maximo + x] == CASILLA_ENTRADA)
+							{
+								posicion_obstaculo->valor_posicion[0] = y + valorMovimiento;
+								/*Ahora escribimos la cadena*/
+								string cadena = "\tentornoPonerFigura(" + to_string(posicion_obstaculo->valor_posicion[0]) + ", "+ to_string(posicion_obstaculo->valor_posicion[1])
+										+","+to_string(pausa)+");\n";
+								e->escribir_fichero(cadena);
+							}
+							else
+							if(e->tablero[(y + valorMovimiento)*maximo + x] ==  CASILLA_SALIDA)
+							{
+								posicion_obstaculo->valor_posicion[0] = y + valorMovimiento;
+								/*Ahora escribimos la cadena*/
+								string cadena = "\tentornoPonerFiguraSalida(" + to_string(posicion_obstaculo->valor_posicion[0]) + ", "+ to_string(posicion_obstaculo->valor_posicion[1])+");\n";
+								e->escribir_fichero(cadena);
+								e->estado_juego= GANADO;
+							}
+							else
+							{
+
+								posicion_obstaculo->valor_posicion[0] = y + valorMovimiento;
+								/*Ahora escribimos la cadena*/
+								string cadena = "\tentornoPonerChoque(" + to_string(posicion_obstaculo->valor_posicion[0]) + ", "+ to_string(posicion_obstaculo->valor_posicion[1])+");\n";
+								e->escribir_fichero(cadena);
+								e->estado_juego= PERDIDO;
+							}
 						}
 						else
 						{
@@ -1997,8 +2081,9 @@ class Movimiento_jugador: public Instruccion
 				}
 				else
 				{
-					Error::registrarErrorSemantico(linea, columna," " ,
+					/*Error::registrarErrorSemantico(linea, columna," " ,
 					"El valor asociado a la instruaccion '"+movimiento+"' debe ser númerico.");
+					*/
 				}
             }
         }

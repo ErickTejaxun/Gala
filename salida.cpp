@@ -25,19 +25,12 @@ int main(int argc, char** argv)
 	entornoPonerEntrada(2,0,0.250000);
 	entornoPonerSalida(2,9);
 	entornoMostrarMensaje("caso1");
-	entornoPonerFigura(1, 1,0.250000);
-	entornoPonerFigura(1, 1,0.250000);
-	entornoPonerFigura(2, 2,0.250000);
-	entornoPonerFigura(2, 2,0.250000);
-	entornoPonerFigura(1, 1,0.250000);
+	entornoPonerChoque(1, 0);
 	entornoMostrarMensaje("Fin");
 
 	/*Comenzando ejemplo*/
 	entornoPonerEntrada(2,0,0.250000);
 	entornoPonerSalida(2,9);
-	entornoPonerFigura(1, 1,0.250000);
-	entornoPonerFigura(2, 2,0.250000);
-	entornoPonerFigura(2, 2,0.250000);
 	entornoMostrarMensaje("Hola mundo");
 
 
