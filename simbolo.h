@@ -83,7 +83,7 @@ class Type
         bool esCadena(){ return tipo ==TIPOCADENA;}        
         bool esPosicion(){return tipo==TIPOPOSICION;}  
         bool esError(){return tipo==TIPOERROR;}   
-        bool esNumerico(){ return esEntero()|| esReal();}                      
+        bool esNumerico(){ return tipo == TIPOENTERO|| tipo ==TIPOREAL;}                      
         string getNombre()
         {
             if(esEntero()){return "Entero";}
@@ -299,6 +299,7 @@ class Entorno
         ofstream fichero;
         int *tablero;
         int estado_juego = NO_GANADO;
+        bool puede_continuar = true;
         Entorno(Entorno * p)
         {
             padre = p;
@@ -1535,75 +1536,72 @@ class Obstaculo_movimiento: public Instruccion
             simbolo valor = expr->getValor(e);
             if(valor.tipo.esNumerico())
             {
-            	if(!esEjemplo)
-            	{
-					int valorMovimiento = 0;
-					if(valor.tipo.esEntero()){ valorMovimiento = valor.valor_entero;}
-					else{ valorMovimiento = valor.valor_real;}
+                int valorMovimiento = 0;
+                if(valor.tipo.esEntero()){ valorMovimiento = valor.valor_entero;}
+                else{ valorMovimiento = valor.valor_real;}
 
-					simbolo *posicion_obstaculo = e->tabla.obtenerSimboloLocal("POSICION_RELATIVA_OBSTACULO", linea);
-					int y = posicion_obstaculo->valor_posicion[0];
-					int x = posicion_obstaculo->valor_posicion[1];
-					int maximo = e->tabla.obtenerSimboloLocal("TAMANO_TABLERO_INIT", linea)->valor_entero;
-					//cout<< "Aplicando movimiento "<< movimiento <<endl;
-					if(movimiento=="este")
-					{
-						if(( x + valorMovimiento) < maximo)
-						{
-							posicion_obstaculo->valor_posicion[1] = x + valorMovimiento;
-						}
-						else
-						{
-							Error::registrarErrorSemantico(linea, columna," " ,
-							"Error: Instruccion "+movimiento + ": El valor debe ser menor al tamaño máximo del tablero." + to_string(x+valorMovimiento) +" > " + to_string(maximo-1));
-						}
-					}
-					else
-					if(movimiento=="oeste")
-					{
-						if(( x + valorMovimiento) >= 0)
-						{
-							posicion_obstaculo->valor_posicion[1] = x - valorMovimiento;
-						}
-						else
-						{
-							Error::registrarErrorSemantico(linea, columna," " ,
-							"Error: Instruccion "+movimiento + ": El valor debe ser mayor a 0 (< "+ to_string(y-valorMovimiento)+")");
-						}
-					}
-					else
-					if(movimiento=="norte")
-					{
-						if(( y - valorMovimiento) >= 0)
-						{
-							posicion_obstaculo->valor_posicion[0] = y - valorMovimiento;
-						}
-						else
-						{
-							Error::registrarErrorSemantico(linea, columna," " ,
-							"Error: Instruccion "+movimiento + ": El valor debe ser mayor a 0 (< "+ to_string(y-valorMovimiento)+")");
-						}
-					}
-					else
-					if(movimiento=="sur")
-					{
-						if(( y + valorMovimiento) < maximo)
-						{
-							posicion_obstaculo->valor_posicion[0] = y + valorMovimiento;
-						}
-						else
-						{
-							Error::registrarErrorSemantico(linea, columna," " ,
-							"Error: Instruccion "+movimiento + ": El valor debe ser menor al tamaño máximo del tablero. "  + to_string(y+valorMovimiento) +" > " + to_string(maximo-1));
-						}
-					}
-				}
-				else
-				{
-					Error::registrarErrorSemantico(linea, columna," " ,
-					"El valor asociado a la instruaccion '"+movimiento+"' debe ser númerico.");
-				}
+                simbolo *posicion_obstaculo = e->tabla.obtenerSimboloLocal("POSICION_RELATIVA_OBSTACULO", linea);
+                int y = posicion_obstaculo->valor_posicion[0];
+                int x = posicion_obstaculo->valor_posicion[1];
+                int maximo = e->tabla.obtenerSimboloLocal("TAMANO_TABLERO_INIT", linea)->valor_entero;
+                //cout<< "Aplicando movimiento "<< movimiento <<endl;
+                if(movimiento=="este")
+                {
+                    if(( x + valorMovimiento) < maximo)
+                    {
+                        posicion_obstaculo->valor_posicion[1] = x + valorMovimiento;
+                    }
+                    else
+                    {
+                        Error::registrarErrorSemantico(linea, columna," " ,
+                        "Error: Instruccion "+movimiento + ": El valor debe ser menor al tamaño máximo del tablero." + to_string(x+valorMovimiento) +" > " + to_string(maximo-1));
+                    }
+                }
+                else
+                if(movimiento=="oeste")
+                {
+                    if(( x + valorMovimiento) >= 0)
+                    {
+                        posicion_obstaculo->valor_posicion[1] = x - valorMovimiento;
+                    }
+                    else
+                    {
+                        Error::registrarErrorSemantico(linea, columna," " ,
+                        "Error: Instruccion "+movimiento + ": El valor debe ser mayor a 0 (< "+ to_string(y-valorMovimiento)+")");
+                    }
+                }
+                else
+                if(movimiento=="norte")
+                {
+                    if(( y - valorMovimiento) >= 0)
+                    {
+                        posicion_obstaculo->valor_posicion[0] = y - valorMovimiento;
+                    }
+                    else
+                    {
+                        Error::registrarErrorSemantico(linea, columna," " ,
+                        "Error: Instruccion "+movimiento + ": El valor debe ser mayor a 0 (< "+ to_string(y-valorMovimiento)+")");
+                    }
+                }
+                else
+                if(movimiento=="sur")
+                {
+                    if(( y + valorMovimiento) < maximo)
+                    {
+                        posicion_obstaculo->valor_posicion[0] = y + valorMovimiento;
+                    }
+                    else
+                    {
+                        Error::registrarErrorSemantico(linea, columna," " ,
+                        "Error: Instruccion "+movimiento + ": El valor debe ser menor al tamaño máximo del tablero. "  + to_string(y+valorMovimiento) +" > " + to_string(maximo-1));
+                    }
+                }				
             }
+            else
+            {
+                Error::registrarErrorSemantico(linea, columna," " ,
+                "El valor asociado a la instruccion '"+movimiento+"' debe ser númerico. Tipo enviado: " +valor.tipo.getNombre());
+            }            
         }
 };
 
@@ -1735,7 +1733,7 @@ class Establecer_dimension: public Instruccion
             if(!valor.tipo.esNumerico())
             {
                 Error::registrarErrorSemantico(linea, columna," " ,
-                "El valor asociado a la instruaccion Dimensión debe ser númerico.");
+                "El valor asociado a la instruccion Dimensión debe ser númerico.");
                 return;                
             }
             else
@@ -1786,7 +1784,7 @@ class Establecer_entrada: public Instruccion
         	if(!coordena.tipo.esPosicion())
         	{
                 Error::registrarErrorSemantico(linea, columna," " ,
-                "El valor asociado a la instruaccion Entrada debe ser posición.");
+                "El valor asociado a la instruccion Entrada debe ser posición.");
                 return;
         	}
         	else
@@ -1857,7 +1855,7 @@ class Establecer_salida: public Instruccion
         	if(!coordena.tipo.esPosicion())
         	{
                 Error::registrarErrorSemantico(linea, columna," " ,
-                "El valor asociado a la instruaccion Salida debe ser posición.");
+                "El valor asociado a la instruccion Salida debe ser posición.");
                 return;
         	}
         	else
@@ -1928,7 +1926,7 @@ class Establecer_pausa: public Instruccion
         	if(!valor.tipo.esNumerico())
         	{
                 Error::registrarErrorSemantico(linea, columna," " ,
-                "El valor asociado a la instruaccion Salida debe ser posición.");
+                "El valor asociado a la instruccion Salida debe ser posición.");
                 return;
         	}
         	else
@@ -1983,7 +1981,11 @@ class Ejemplo:public Instruccion
 
             e->escribir_fichero(cadena);
 
-
+            /*Ponemos al jugador en la entrada*/
+            e->tabla.obtenerSimboloLocal("JUGADOR_POSICION_ACTUAL",0)->valor_posicion[0] = y_entrada;
+            e->tabla.obtenerSimboloLocal("JUGADOR_POSICION_ACTUAL",0)->valor_posicion[1] = x_entrada;
+            e->estado_juego = NO_GANADO;
+            e->puede_continuar = true;
         	instrucciones->ejecutar(e);
         }
 
@@ -2015,7 +2017,8 @@ class Movimiento_jugador: public Instruccion
             if(valor.tipo.esNumerico())
             {
             	/*Continuamos solo si el jugador no ha perdido o no ha llegado a la meta.*/
-            	if(e->estado_juego == NO_GANADO)
+            	//if(e->estado_juego == NO_GANADO)
+                if (e->puede_continuar)
             	{
 					int valorMovimiento = 0;
 					if(valor.tipo.esEntero()){ valorMovimiento = valor.valor_entero;}
@@ -2029,170 +2032,197 @@ class Movimiento_jugador: public Instruccion
 					//cout<< "Aplicando movimiento "<< movimiento <<endl;
 					if(movimiento=="este")
 					{
-						if(( x + valorMovimiento) < maximo)
-						{
-							if(e->tablero[y*maximo + (x+valorMovimiento)] == CASILLA_VACIA || e->tablero[y*maximo + (x+valorMovimiento)] == CASILLA_ENTRADA)
-							{
-								posicion_obstaculo->valor_posicion[1] = x + valorMovimiento;
-								/*Ahora escribimos la cadena*/
-								string cadena = "\tentornoPonerFigura(" + to_string(posicion_obstaculo->valor_posicion[0]) + ", "+ to_string(posicion_obstaculo->valor_posicion[1])
-										+","+to_string(pausa)+");\n";
-								e->escribir_fichero(cadena);
-							}
-							else
-							if(e->tablero[y*maximo + (x+valorMovimiento)] == CASILLA_SALIDA)
-							{
-								posicion_obstaculo->valor_posicion[1] = x + valorMovimiento;
-								/*Ahora escribimos la cadena*/
-								string cadena = "\tentornoPonerFiguraSalida(" + to_string(posicion_obstaculo->valor_posicion[0]) + ", "+ to_string(posicion_obstaculo->valor_posicion[1])+");\n";
-                                cadena = cadena + "\n\tentornoMostrarMensaje (\"  ¡ Lo conseguiste !    \");";
-								e->escribir_fichero(cadena);
-								e->estado_juego= GANADO;
-							}
-							else
-							{
-								posicion_obstaculo->valor_posicion[1] = x + valorMovimiento;
-								/*Ahora escribimos la cadena*/
-								string cadena = "\tentornoPonerChoque(" + to_string(posicion_obstaculo->valor_posicion[0]) + ", "+ to_string(posicion_obstaculo->valor_posicion[1])+");\n";
-                                cadena  = cadena +"\n\nentornoMostrarMensaje (\"  ¡ Mala suerte !    \");";
-								e->escribir_fichero(cadena);
-								e->estado_juego= PERDIDO;
-							}
-						}
-						else
-						{
-							Error::registrarErrorSemantico(linea, columna," " ,
-							"Error: Instruccion "+movimiento + ": El valor debe ser menor al tamaño máximo del tablero." + to_string(x+valorMovimiento) +" > " + to_string(maximo));
-						}
+                        for(int i = 1; i <= valorMovimiento ; i++)
+                        {
+                            if(( x + i) < maximo)
+                            {
+                                if(e->tablero[y*maximo + (x+i)] == CASILLA_VACIA || e->tablero[y*maximo + (x+i)] == CASILLA_ENTRADA)
+                                {                                    
+                                        posicion_obstaculo->valor_posicion[1] = x + i;
+                                        /*Ahora escribimos la cadena*/
+                                        string cadena = "\tentornoPonerFigura(" + to_string(posicion_obstaculo->valor_posicion[0]) + ", "+ to_string(posicion_obstaculo->valor_posicion[1])
+                                                +","+to_string(pausa)+");\n";
+                                        e->escribir_fichero(cadena);                                    
+                                }
+                                else
+                                if(e->tablero[y*maximo + (x+i)] == CASILLA_SALIDA)
+                                {                                     
+                                        posicion_obstaculo->valor_posicion[1] = x + i;
+                                        /*Ahora escribimos la cadena*/
+                                        string cadena = "\tentornoPonerFiguraSalida(" + to_string(posicion_obstaculo->valor_posicion[0]) + ", "+ to_string(posicion_obstaculo->valor_posicion[1])+");\n";
+                                        cadena = cadena + "\tentornoMostrarMensaje (\"  ¡ Lo conseguiste !    \");\n";
+                                        e->escribir_fichero(cadena);
+                                        e->estado_juego= GANADO;     
+                                        e->puede_continuar= false; 
+                                        break;                              
+                                }
+                                else
+                                {
+                                    posicion_obstaculo->valor_posicion[1] = x + i;
+                                    /*Ahora escribimos la cadena*/
+                                    string cadena = "\tentornoPonerChoque(" + to_string(posicion_obstaculo->valor_posicion[0]) + ", "+ to_string(posicion_obstaculo->valor_posicion[1])+");\n";
+                                    cadena  = cadena +"\tentornoMostrarMensaje (\"  ¡ Mala suerte !    \");\n";
+                                    e->escribir_fichero(cadena);
+                                    e->estado_juego= PERDIDO;
+                                    e->puede_continuar= false;
+                                    break;
+                                }
+                            }
+                            else
+                            {
+                                Error::registrarErrorSemantico(linea, columna," " ,
+                                "Error: Instruccion "+movimiento + ": El valor debe ser menor al tamaño máximo del tablero." + to_string(x+i) +" > " + to_string(maximo));
+                            }
+                        }
 					}
 					else
 					if(movimiento=="oeste")
 					{
-						if(( x - valorMovimiento) >= 0)
-						{
-							if(e->tablero[y*maximo + (x-valorMovimiento)] == CASILLA_VACIA || e->tablero[y*maximo + (x-valorMovimiento)] == CASILLA_ENTRADA)
-							{
-								posicion_obstaculo->valor_posicion[1] = x - valorMovimiento;
-								/*Ahora escribimos la cadena*/
-								string cadena = "\tentornoPonerFigura(" + to_string(posicion_obstaculo->valor_posicion[0]) + ", "+ to_string(posicion_obstaculo->valor_posicion[1])
-										+","+to_string(pausa)+");\n";
-								e->escribir_fichero(cadena);
-							}
-							else
-							if(e->tablero[y*maximo + (x-valorMovimiento)] == CASILLA_SALIDA)
-							{
-								posicion_obstaculo->valor_posicion[1] = x - valorMovimiento;
-								/*Ahora escribimos la cadena*/
-								string cadena = "\tentornoPonerFiguraSalida(" + to_string(posicion_obstaculo->valor_posicion[0]) + ", "+ to_string(posicion_obstaculo->valor_posicion[1])+");\n";
-                                cadena = cadena + "\n\tentornoMostrarMensaje (\"  ¡ Lo conseguiste !    \");";
-								e->escribir_fichero(cadena);
-								e->estado_juego= GANADO;
-							}
-							else
-							{
-								posicion_obstaculo->valor_posicion[1] = x - valorMovimiento;
-								/*Ahora escribimos la cadena*/
-								string cadena = "\tentornoPonerChoque(" + to_string(posicion_obstaculo->valor_posicion[0]) + ", "+ to_string(posicion_obstaculo->valor_posicion[1])+");\n";
-                                cadena  = cadena +"\n\nentornoMostrarMensaje (\"  ¡ Mala suerte !    \");";
-								e->escribir_fichero(cadena);
-								e->estado_juego= PERDIDO;
-							}
-						}
-						else
-						{
-							Error::registrarErrorSemantico(linea, columna," " ,
-							"Error: Instruccion "+movimiento + ": El valor debe ser mayor a 0 (< "+ to_string(y-valorMovimiento)+")");
-						}
+                        for(int i = 1; i <= valorMovimiento; i++)
+                        {                        
+                            if(( x - i) >= 0)
+                            {
+                                if(e->tablero[y*maximo + (x-i)] == CASILLA_VACIA || e->tablero[y*maximo + (x-i)] == CASILLA_ENTRADA)
+                                {
+                                    posicion_obstaculo->valor_posicion[1] = x - i;
+                                    /*Ahora escribimos la cadena*/
+                                    string cadena = "\tentornoPonerFigura(" + to_string(posicion_obstaculo->valor_posicion[0]) + ", "+ to_string(posicion_obstaculo->valor_posicion[1])
+                                            +","+to_string(pausa)+");\n";
+                                    e->escribir_fichero(cadena);
+                                }
+                                else
+                                if(e->tablero[y*maximo + (x-i)] == CASILLA_SALIDA)
+                                {
+                                    posicion_obstaculo->valor_posicion[1] = x - i;
+                                    /*Ahora escribimos la cadena*/
+                                    string cadena = "\tentornoPonerFiguraSalida(" + to_string(posicion_obstaculo->valor_posicion[0]) + ", "+ to_string(posicion_obstaculo->valor_posicion[1])+");\n";
+                                    cadena = cadena + "\tentornoMostrarMensaje (\"  ¡ Lo conseguiste !    \");\n";
+                                    e->escribir_fichero(cadena);
+                                    e->estado_juego= GANADO;
+                                    e->puede_continuar= false;
+                                    break;
+                                }
+                                else
+                                {
+                                    posicion_obstaculo->valor_posicion[1] = x - i;
+                                    /*Ahora escribimos la cadena*/
+                                    string cadena = "\tentornoPonerChoque(" + to_string(posicion_obstaculo->valor_posicion[0]) + ", "+ to_string(posicion_obstaculo->valor_posicion[1])+");\n";
+                                    cadena  = cadena +"\tentornoMostrarMensaje (\"  ¡ Mala suerte !    \");\n";
+                                    e->escribir_fichero(cadena);
+                                    e->estado_juego= PERDIDO;
+                                    e->puede_continuar= false;
+                                    break;
+                                }
+                            }
+                            else
+                            {
+                                Error::registrarErrorSemantico(linea, columna," " ,
+                                "Error: Instruccion "+movimiento + ": El valor debe ser mayor a 0 (< "+ to_string(y-i)+")");
+                            }
+                        }
 					}
 					else
 					if(movimiento=="norte")
 					{
-						if(( y - valorMovimiento) >= 0)
-						{
-							if(e->tablero[(y - valorMovimiento)*maximo + x] == CASILLA_VACIA || e->tablero[(y - valorMovimiento)*maximo + x] == CASILLA_ENTRADA)
-							{
-								posicion_obstaculo->valor_posicion[0] = y - valorMovimiento;
-								/*Ahora escribimos la cadena*/
-								string cadena = "\tentornoPonerFigura(" + to_string(posicion_obstaculo->valor_posicion[0]) + ", "+ to_string(posicion_obstaculo->valor_posicion[1])
-										+","+to_string(pausa)+");\n";
-								e->escribir_fichero(cadena);
-							}
-							else
-							if(e->tablero[(y - valorMovimiento)*maximo + x] ==  CASILLA_SALIDA)
-							{
-								posicion_obstaculo->valor_posicion[0] = y - valorMovimiento;
-								/*Ahora escribimos la cadena*/
-								string cadena = "\tentornoPonerFiguraSalida(" + to_string(posicion_obstaculo->valor_posicion[0]) + ", "+ to_string(posicion_obstaculo->valor_posicion[1])+");\n";
-                                cadena = cadena + "\n\tentornoMostrarMensaje (\"  ¡ Lo conseguiste !    \");";
-								e->escribir_fichero(cadena);
-								e->estado_juego= GANADO;
-							}
-							else
-							{
+                        for(int i = 1; i <= valorMovimiento; i++)
+                        {
+                            if(( y - i) >= 0)
+                            {
+                                if(e->tablero[(y - i)*maximo + x] == CASILLA_VACIA || e->tablero[(y - i)*maximo + x] == CASILLA_ENTRADA)
+                                {
+                                    posicion_obstaculo->valor_posicion[0] = y - i;
+                                    /*Ahora escribimos la cadena*/
+                                    string cadena = "\tentornoPonerFigura(" + to_string(posicion_obstaculo->valor_posicion[0]) + ", "+ to_string(posicion_obstaculo->valor_posicion[1])
+                                            +","+to_string(pausa)+");\n";
+                                    e->escribir_fichero(cadena);
+                                }
+                                else
+                                if(e->tablero[(y - i)*maximo + x] ==  CASILLA_SALIDA)
+                                {
+                                    posicion_obstaculo->valor_posicion[0] = y - i;
+                                    /*Ahora escribimos la cadena*/
+                                    string cadena = "\tentornoPonerFiguraSalida(" + to_string(posicion_obstaculo->valor_posicion[0]) + ", "+ to_string(posicion_obstaculo->valor_posicion[1])+");\n";
+                                    cadena = cadena + "\tentornoMostrarMensaje (\"  ¡ Lo conseguiste !    \");\n";
+                                    e->escribir_fichero(cadena);
+                                    e->estado_juego= GANADO;
+                                    e->puede_continuar= false;
+                                    break;
+                                }
+                                else
+                                {
 
-								posicion_obstaculo->valor_posicion[0] = y - valorMovimiento;
-								/*Ahora escribimos la cadena*/
-								string cadena = "\tentornoPonerChoque(" + to_string(posicion_obstaculo->valor_posicion[0]) + ", "+ to_string(posicion_obstaculo->valor_posicion[1])+");\n";
-                                cadena  = cadena +"\n\nentornoMostrarMensaje (\"  ¡ Mala suerte !    \");";
-								e->escribir_fichero(cadena);
-								e->estado_juego= PERDIDO;
-							}
+                                    posicion_obstaculo->valor_posicion[0] = y - i;
+                                    /*Ahora escribimos la cadena*/
+                                    string cadena = "\tentornoPonerChoque(" + to_string(posicion_obstaculo->valor_posicion[0]) + ", "+ to_string(posicion_obstaculo->valor_posicion[1])+");\n";
+                                    cadena  = cadena +"\tentornoMostrarMensaje (\"  ¡ Mala suerte !    \");\n";
+                                    e->escribir_fichero(cadena);
+                                    e->estado_juego= PERDIDO;
+                                    e->puede_continuar= false;
+                                    break;
+                                }
 
 
-						}
-						else
-						{
-							Error::registrarErrorSemantico(linea, columna," " ,
-							"Error: Instruccion "+movimiento + ": El valor debe ser mayor a 0 (< "+ to_string(y-valorMovimiento)+")");
-						}
+                            }
+                            else
+                            {
+                                Error::registrarErrorSemantico(linea, columna," " ,
+                                "Error: Instruccion "+movimiento + ": El valor debe ser mayor a 0 (< "+ to_string(y-i)+")");
+                            }
+                        }
 					}
 					else
 					if(movimiento=="sur")
 					{
-						if(( y + valorMovimiento) < maximo)
-						{
+                        for(int i = 1; i<= valorMovimiento ; i++)
+                        {                        
+                            if(( y + i) < maximo)
+                            {
 
-							if(e->tablero[(y + valorMovimiento)*maximo + x] == CASILLA_VACIA || e->tablero[(y + valorMovimiento)*maximo + x] == CASILLA_ENTRADA)
-							{
-								posicion_obstaculo->valor_posicion[0] = y + valorMovimiento;
-								/*Ahora escribimos la cadena*/
-								string cadena = "\tentornoPonerFigura(" + to_string(posicion_obstaculo->valor_posicion[0]) + ", "+ to_string(posicion_obstaculo->valor_posicion[1])
-										+","+to_string(pausa)+");\n";
-								e->escribir_fichero(cadena);
-							}
-							else
-							if(e->tablero[(y + valorMovimiento)*maximo + x] ==  CASILLA_SALIDA)
-							{
-								posicion_obstaculo->valor_posicion[0] = y + valorMovimiento;
-								/*Ahora escribimos la cadena*/
-								string cadena = "\tentornoPonerFiguraSalida(" + to_string(posicion_obstaculo->valor_posicion[0]) + ", "+ to_string(posicion_obstaculo->valor_posicion[1])+");\n";
-                                cadena = cadena + "\n\tentornoMostrarMensaje (\"  ¡ Lo conseguiste !    \");";
-								e->escribir_fichero(cadena);
-								e->estado_juego= GANADO;
-							}
-							else
-							{
+                                if(e->tablero[(y + i)*maximo + x] == CASILLA_VACIA || e->tablero[(y + i)*maximo + x] == CASILLA_ENTRADA)
+                                {
+                                    posicion_obstaculo->valor_posicion[0] = y + i;
+                                    /*Ahora escribimos la cadena*/
+                                    string cadena = "\tentornoPonerFigura(" + to_string(posicion_obstaculo->valor_posicion[0]) + ", "+ to_string(posicion_obstaculo->valor_posicion[1])
+                                            +","+to_string(pausa)+");\n";
+                                    e->escribir_fichero(cadena);
+                                }
+                                else
+                                if(e->tablero[(y + i)*maximo + x] ==  CASILLA_SALIDA)
+                                {
+                                    posicion_obstaculo->valor_posicion[0] = y + i;
+                                    /*Ahora escribimos la cadena*/
+                                    string cadena = "\tentornoPonerFiguraSalida(" + to_string(posicion_obstaculo->valor_posicion[0]) + ", "+ to_string(posicion_obstaculo->valor_posicion[1])+");\n";
+                                    cadena = cadena + "\tentornoMostrarMensaje (\"  ¡ Lo conseguiste !    \");\n";
+                                    e->escribir_fichero(cadena);
+                                    e->estado_juego= GANADO;
+                                    e->puede_continuar= false;
+                                    break;
+                                }
+                                else
+                                {
 
-								posicion_obstaculo->valor_posicion[0] = y + valorMovimiento;
-								/*Ahora escribimos la cadena*/
-								string cadena = "\tentornoPonerChoque(" + to_string(posicion_obstaculo->valor_posicion[0]) + ", "+ to_string(posicion_obstaculo->valor_posicion[1])+");\n";
-                                cadena  = cadena +"\n\nentornoMostrarMensaje (\"  ¡ Mala suerte !    \");";
-								e->escribir_fichero(cadena);
-								e->estado_juego= PERDIDO;
-							}
-						}
-						else
-						{
-							Error::registrarErrorSemantico(linea, columna," " ,
-							"Error: Instruccion "+movimiento + ": El valor debe ser menor al tamaño máximo del tablero. "  + to_string(x+valorMovimiento) +" > " + to_string(maximo));
-						}
+                                    posicion_obstaculo->valor_posicion[0] = y + i;
+                                    /*Ahora escribimos la cadena*/
+                                    string cadena = "\tentornoPonerChoque(" + to_string(posicion_obstaculo->valor_posicion[0]) + ", "+ to_string(posicion_obstaculo->valor_posicion[1])+");\n";
+                                    cadena  = cadena +"\tentornoMostrarMensaje (\"  ¡ Mala suerte !    \");\n";
+                                    e->escribir_fichero(cadena);
+                                    e->estado_juego= PERDIDO;
+                                    e->puede_continuar= false;
+                                    break;
+                                }
+                            }
+                            else
+                            {
+                                Error::registrarErrorSemantico(linea, columna," " ,
+                                "Error: Instruccion "+movimiento + ": El valor debe ser menor al tamaño máximo del tablero. "  + to_string(x+i) +" > " + to_string(maximo));
+                            }
+                        }
 					}
 				}
 				else
 				{
 					/*Error::registrarErrorSemantico(linea, columna," " ,
-					"El valor asociado a la instruaccion '"+movimiento+"' debe ser númerico.");
-					*/
+					"El valor asociado a la instruccion '"+movimiento+"' debe ser númerico. Tipo enviado : " + valor.tipo.getNombre());*/
 				}
             }
         }
@@ -2273,6 +2303,7 @@ class Programa:public Instruccion
 
                 /*Ahora ejecutamos los ejemplos*/
                 ejemplos->ejecutar(e);
+                e->escribir_fichero("\tentornoMostrarMensajeFin (\"  ¡ Fin !    \");");
             }
             /*De ultimo agregamos el tamaño del tablero*/
             
@@ -2292,7 +2323,7 @@ class Programa:public Instruccion
             fichero.close();
 
 
-            string cierre = "\n\nentornoTerminar();\nentornoPausa(3);\n\treturn 0;\n}";
+            string cierre = "\n\n\tentornoTerminar();\n\tentornoPausa(3);\n\treturn 0;\n}";
             e->escribir_fichero(cierre);
             e->cerrarFichero();
 

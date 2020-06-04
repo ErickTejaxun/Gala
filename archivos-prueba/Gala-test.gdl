@@ -30,7 +30,7 @@ CONFIGURACION
   Dimension D  
   entrada INICIO    
   salida FIN
-
+  pausa 1.00 - 0.25
   
   # Algunos errores semánticos de configuración
   
@@ -95,10 +95,20 @@ EJEMPLOS
         escribir cad
         oeste 4
         norte 3
-        este 2
+        este a
         norte 2
         oeste 2
     finejemplo 
+
+    ejemplo EJEMPLO_1               # Ejemplo 1
+        cad="Soy Ejemplo 1333"
+        escribir cad
+        oeste 4
+        norte 3        
+        este 3
+        norte 2
+        oeste 2
+    finejemplo     
 
     ejemplo EJEMPLO_2               # Ejemplo 2
         cad="Soy Ejemplo 2"

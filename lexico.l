@@ -22,16 +22,16 @@ ident ([a-zA-Z]|_)([a-zA-Z]|_|{DIGITO})*
 cadena "\""[^"\""]*"\""
 %%
 
-<COM1>\n                       {n_lineas++; yyless(0); BEGIN(COM);}
+<COM1>\n                       {yyless(0);BEGIN(COM);}
 <COM1>.                        {;}   
-<COM>\n                        {}
+<COM>\n                        {n_lineas++;}
 <COM>#                         {BEGIN(COM1);}
 <COM>.                         {yyless(0); BEGIN(SALTO);}
 <SALTO>#                       {BEGIN(COM1);}
 <SALTO>[\t ]			       ;
-<SALTO>.                       {yyless(0);BEGIN(0); return('\n');}
+<SALTO>.                       {n_lineas++;yyless(0);BEGIN(0); return('\n');}
 #    		                    BEGIN(COM1);
-[\n]+		                    n_lineas+=yyleng; yyless(yyleng); BEGIN(SALTO);
+[\n]+		                    /*n_lineas+=yyleng;*/ yyless(yyleng); BEGIN(SALTO);
 [0-9]+			                yylval.valor_entero = atoi(yytext); return NUMERO;
 [0-9]+"."[0-9]*	                yylval.valor_real = atof(yytext); return REAL;
 "<="                            return MENORIGUAL;
