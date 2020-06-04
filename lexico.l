@@ -27,11 +27,12 @@ cadena "\""[^"\""]*"\""
 <COM>\n                        {n_lineas++;}
 <COM>#                         {BEGIN(COM1);}
 <COM>.                         {yyless(0); BEGIN(SALTO);}
+
 <SALTO>#                       {BEGIN(COM1);}
 <SALTO>[\t ]			       ;
-<SALTO>.                       {n_lineas++;yyless(0);BEGIN(0); return('\n');}
-#    		                    BEGIN(COM1);
-[\n]+		                    /*n_lineas+=yyleng;*/ yyless(yyleng); BEGIN(SALTO);
+<SALTO>.                       {yyless(0);BEGIN(0); return('\n');}
+#    		                    yyless(0);BEGIN(COM);
+[\n]+		                    n_lineas+=yyleng; BEGIN(COM);
 [0-9]+			                yylval.valor_entero = atoi(yytext); return NUMERO;
 [0-9]+"."[0-9]*	                yylval.valor_real = atof(yytext); return REAL;
 "<="                            return MENORIGUAL;

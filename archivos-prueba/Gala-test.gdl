@@ -35,6 +35,8 @@ CONFIGURACION
   # Algunos errores semánticos de configuración
   
   entrada <1,1>         # Err. Sem.: la entrada debe estar en el borde del tablero
+
+  
   salida <2,3>          # Err. Sem.: la salida debe estar en el borde del tablero
 
 OBSTACULOS
