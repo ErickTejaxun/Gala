@@ -22,17 +22,17 @@ ident ([a-zA-Z]|_)([a-zA-Z]|_|{DIGITO})*
 cadena "\""[^"\""]*"\""
 %%
 
-<COM1>\n                       {yyless(0);BEGIN(COM);}
+<COM1>\n                       {n_lineas++;BEGIN(COM);}
 <COM1>.                        {;}   
-<COM>\n                        {n_lineas++;}
-<COM>#                         {BEGIN(COM1);}
-<COM>.                         {yyless(0); BEGIN(SALTO);}
-
+<COM>\n                        {;}
+<COM>#                         {n_lineas++;BEGIN(COM1);}
+<COM>[\t ]			       ;
+<COM>.                         {n_lineas++;yyless(0); BEGIN(SALTO);}
 <SALTO>#                       {BEGIN(COM1);}
 <SALTO>[\t ]			       ;
 <SALTO>.                       {yyless(0);BEGIN(0); return('\n');}
-#    		                    yyless(0);BEGIN(COM);
-[\n]+		                    n_lineas+=yyleng; BEGIN(COM);
+#    		                    BEGIN(COM1);
+[\n]+		                    BEGIN(SALTO);
 [0-9]+			                yylval.valor_entero = atoi(yytext); return NUMERO;
 [0-9]+"."[0-9]*	                yylval.valor_real = atof(yytext); return REAL;
 "<="                            return MENORIGUAL;
@@ -70,7 +70,7 @@ sino                             return SINO;
 finsi                            return FINSI;
 entonces                         return ENTONCES;
 {ident}                         strcpy(yylval.valor_cadena,yytext);  return ID;
-{cadena}                        strcpy(yylval.valor_cadena,&yytext[1]); yylval.valor_cadena[yyleng-2] = '\0';  return CADENA;
+{cadena}                        {strcpy(yylval.valor_cadena,&yytext[1]); yylval.valor_cadena[yyleng-2] = '\0';  return CADENA;/*Quitamos las comilas*/}
 [\t ]			                ;	
 . 				                 return (yytext[0]);
 %%

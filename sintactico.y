@@ -348,7 +348,7 @@ int main(int argc, char *argv[])
             yyparse();
             if(raiz == NULL)
             {
-                  printf("\nNada que ejecutar\n");                  
+                  printf("Nada que ejecutar\n");                  
             }
             else
             {                      

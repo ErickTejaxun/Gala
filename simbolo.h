@@ -111,6 +111,7 @@ class simbolo
         int linea;
         int columna;
         bool constante = false;
+        bool simbolo_juego = false;
         /*Constructores*/
         simbolo() {} ;
         simbolo(string i, int v, int l, int c): id(i), valor_entero(v), linea(l), columna(c){tipo = Type(TIPOENTERO);};
@@ -122,7 +123,7 @@ class simbolo
         Type getTipo(Entorno *e){ return tipo;}    
 
         /*Manejo de consantes*/
-        bool esConstante(){return constante;}
+        bool esConstante(){return constante;}        
         string rol()
         {
             if(constante)
@@ -138,42 +139,50 @@ class TablaSimbolos
 {
     public:
         map<string, simbolo> tabla;  
-        //string tipos[4] = {"TIPOENTERO","TIPOREAL","lógico","TIPOERROR"};    
+
+        /*Esta función devuelve una cadena con el reporte de la tabla de símbolos. */ 
         string getCadenaData()
         {
             string DATACADENA = "Nombre\t\t\tTipo\t\t\tRol\t\t\tValor";
             map<string, simbolo>::iterator item;
             for(item = tabla.begin(); item != tabla.end(); item++)
             {
-                switch (item->second.tipo.getTipo())
+                if(!item->second.simbolo_juego)
                 {
-                    case TIPOENTERO:
-                        DATACADENA = DATACADENA + "\n"+item->second.id +"\t\t\t"+item->second.tipo.getNombre()+"\t\t\t"
-                        +item->second.rol()+"\t\t\t"+to_string(item->second.valor_entero);
-                        break;                
-                    case TIPOREAL:
-                        DATACADENA = DATACADENA + "\n"+item->second.id +"\t\t\t"+item->second.tipo.getNombre()+"\t\t\t"
-						+item->second.rol()+"\t\t\t"+to_string(item->second.valor_real);
-                        break;                
-                    case TIPOLOGICO:
-                        DATACADENA = DATACADENA + "\n"+item->second.id +"\t\t\t"+item->second.tipo.getNombre()+"\t\t\t"
-						+item->second.rol()+"\t\t\t"+item->second.getCadenaLogico();
-                        break;   
-                    case TIPOCADENA:
-                        DATACADENA = DATACADENA + "\n"+item->second.id +"\t\t\t"+item->second.tipo.getNombre()+"\t\t\t"
-						+item->second.rol()+"\t\t\t"+item->second.valor_cadena;
-                        break;
-                    case TIPOPOSICION:
-                        DATACADENA = DATACADENA + "\n"+item->second.id +"\t\t\t"+item->second.tipo.getNombre()+"\t\t\t"
-						+item->second.rol()+"\t\t\ty:" +to_string(item->second.valor_posicion[0]) +"   x: " +to_string(item->second.valor_posicion[1]);
-                        break;                       
-                    default:
-                        break;
+                    switch (item->second.tipo.getTipo())
+                    {
+                        case TIPOENTERO:
+                            DATACADENA = DATACADENA + "\n"+item->second.id +"\t\t\t"+item->second.tipo.getNombre()+"\t\t\t"
+                            +item->second.rol()+"\t\t\t"+to_string(item->second.valor_entero);
+                            break;                
+                        case TIPOREAL:
+                            DATACADENA = DATACADENA + "\n"+item->second.id +"\t\t\t"+item->second.tipo.getNombre()+"\t\t\t"
+                            +item->second.rol()+"\t\t\t"+to_string(item->second.valor_real);
+                            break;                
+                        case TIPOLOGICO:
+                            DATACADENA = DATACADENA + "\n"+item->second.id +"\t\t\t"+item->second.tipo.getNombre()+"\t\t\t"
+                            +item->second.rol()+"\t\t\t"+item->second.getCadenaLogico();
+                            break;   
+                        case TIPOCADENA:
+                            DATACADENA = DATACADENA + "\n"+item->second.id +"\t\t\t"+item->second.tipo.getNombre()+"\t\t\t"
+                            +item->second.rol()+"\t\t\t"+item->second.valor_cadena;
+                            break;
+                        case TIPOPOSICION:
+                            DATACADENA = DATACADENA + "\n"+item->second.id +"\t\t\t"+item->second.tipo.getNombre()+"\t\t\t"
+                            +item->second.rol()+"\t\t\ty:" +to_string(item->second.valor_posicion[0]) +"   x: " +to_string(item->second.valor_posicion[1]);
+                            break;                       
+                        default:
+                            break;
+                    }                    
                 }                
             }
             return DATACADENA;
         }
 
+        /*Este método busca un símbolo (variable/constante)
+        *string id identificador del símbolo
+        *int linea Linea desde donde se ejecuta la búsqueda, para reporte de errores.
+        */
         simbolo * obtenerSimbolo(string id, int linea)
         {                        
             auto it = tabla.find(id);            
@@ -188,6 +197,11 @@ class TablaSimbolos
             return tmp;            
         }   
 
+        /*Este método busca un símbolo (variable/constante) pero sin reporte de errores
+        Sirve para el manejo interno de las variables del juego.
+        *string id identificador del símbolo
+        *int linea Linea desde donde se ejecuta la búsqueda
+        */
         simbolo * obtenerSimboloLocal(string id, int linea)
         {                        
             auto it = tabla.find(id);            
@@ -199,6 +213,9 @@ class TablaSimbolos
             return NULL;            
         }              
 
+        /*Este método regista un nuevo símbolo en la tabla de símbolos haciendo las validaciones semánticas necesarias.
+        * simbolo *s  Contiene todo los datos del nuevo símbolo a registrar.
+        */
         int insertarSimbolo(simbolo *s)
         {                           
             simbolo simb = simbolo();
@@ -207,6 +224,7 @@ class TablaSimbolos
             simb.columna = s->columna; 
             simb.tipo= Type(s->tipo.tipo);
             simb.constante = s->constante;
+            simb.simbolo_juego = s->simbolo_juego;
             switch (s->tipo.getTipo())
             {
                 case TIPOENTERO:
@@ -239,7 +257,9 @@ class TablaSimbolos
             return 1;
         }
 
-
+        /*Método que permite actualizar el valor de un símbolo variable. Realiza todas las verificaciones necesarias.
+        simbolo *s contiene el identificador, valor a actualizar, tipo del valor a actualizar y línea desde donde se ejecuta.
+        */
         int actualizarSimbolo(simbolo *s)
         {
             simbolo *tmp = obtenerSimbolo(s->id, s->linea);
@@ -288,8 +308,8 @@ class TablaSimbolos
         }
 };
 
-/*
-clase para manejar los entornos*/
+/*clase para manejar los entornos para futuras expansiones cuando sea necesario 
+inducir nuevos Entornos*/
 class Entorno
 {
     public:
@@ -309,6 +329,8 @@ class Entorno
                 iniciarTableroEntorno();
             }
         }     
+
+        /*Este método inicializa las variables que */
         void iniciarTableroEntorno()
         {
             simbolo *tamano_tab = new simbolo("TAMANO_TABLERO_INIT",10, 0,0);            
@@ -318,10 +340,15 @@ class Entorno
             simbolo *entrada_tablero = new simbolo("ENTRADA_TABLERO_INIT",0,0,0,0);
             simbolo *salida_tablero = new simbolo("SALIDA_TABLERO_INIT",9,9, 0,0);
             simbolo *posicion_relativa = new simbolo("POSICION_RELATIVA_OBSTACULO",1,0,0,0); 
+            tamano_tab->simbolo_juego = true;
             tabla.insertarSimbolo(tamano_tab);
+            pausa->simbolo_juego = true;
             tabla.insertarSimbolo(pausa);
+            entrada_tablero->simbolo_juego = true;
             tabla.insertarSimbolo(entrada_tablero);
+            salida_tablero->simbolo_juego = true;
             tabla.insertarSimbolo(salida_tablero);
+            posicion_relativa->simbolo_juego = true;
             tabla.insertarSimbolo(posicion_relativa);
             tablero = new int[10*10];
             for(int i =0; i < 10*10; i++)
@@ -2299,6 +2326,7 @@ class Programa:public Instruccion
                 int y_entrada = e->tabla.obtenerSimboloLocal("ENTRADA_TABLERO_INIT", 0)->valor_posicion[0];
                 int x_entrada = e->tabla.obtenerSimboloLocal("ENTRADA_TABLERO_INIT", 0)->valor_posicion[1];
                 simbolo *posicion_jugador = new simbolo("JUGADOR_POSICION_ACTUAL",y_entrada,x_entrada, 0,0);
+                posicion_jugador->simbolo_juego = true;
                 e->tabla.insertarSimbolo(posicion_jugador);
 
                 /*Ahora ejecutamos los ejemplos*/
