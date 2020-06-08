@@ -1,0 +1,100 @@
+DEFINICIONES
+
+  # VARIABLES: no se inicializan
+  entero n
+  entero x,y           # variables que no se usan (Err. Sem.?)
+  real f
+  cadena cad
+  posicion p1,p2
+  entero contadorx, contadory, i
+  real factorial
+        
+  # CONSTANTES: se inicializan y se pueden usar en todos los bloques
+    
+  D = 8               # dimensiones del tablero    
+  INICIO = <D-D,D-D>   # posición de entrada
+  FIN = <D-1,D-1>          # posición de salida
+  P = 0.2*3            # pausa en movimiento
+  
+  MSG_OBS="es Factorial de" # mensaje para la colocación de los obstaculos
+  
+  # Algunos errores semánticos de Definiciones
+  
+  C1 = b + 1           # Err. Sem.: el identificador b no está declarado    
+  C2 = 30 % 2.0        # Err. Sem.: la operación módulo (%) con tipo real  
+
+CONFIGURACION
+  
+  Dimension D  
+  entrada INICIO    
+  salida FIN
+  pausa P
+  
+  # Algunos errores semánticos de configuración
+  
+  entrada <1,1>         # Err. Sem.: la entrada debe estar en el borde del tablero  
+
+OBSTACULOS
+
+  # Algunos errores semánticos de obstáculos
+    
+    obstaculo <8,8>     # Err. Sem.: obstaculo fuera de los límites del tablero
+    
+    obstaculo INICIO    # Err. Sem.: obstaculo en la posición de entrada
+    
+    obstaculo FIN       # Err. Sem.: obstaculo en la posición de salida
+
+
+  # colocación correcta de los obstaculos        
+    
+    p1 = <1,0>
+    contadory=1 #Linea donde inician los obstáculos
+    i=1
+    factorial = 1
+    repite 10
+        si i <= D-1 
+        entonces
+            contadorx= 0 #Ponemos la posicion     
+            obstaculo <contadory,contadorx>            
+            repite i                        
+                contadorx = contadorx + 1
+                obstaculo <contadory, contadorx>                
+            finrepite
+            factorial = factorial * (i+1)            
+        finsi        
+        contadory = contadory+1
+        i= i+1         
+    finrepite 
+    
+     
+        
+        
+    
+EJEMPLOS
+    ejemplo EJEMPLO1      # Ejemplo 1
+        cad = "1)El factorial de " + D +", " +D+"! =" + factorial
+        escribir cad
+        este D-D/2
+        sur D-D/2 -1
+        este D-D/2 -1             
+        sur D-D/2 
+    finejemplo   
+
+    ejemplo EJEMPLO2    # Ejemplo 3
+        cad = "2)El factorial de " + D +", " +D+"! =" + factorial
+        escribir cad
+        este D-D/2
+        sur D-D/2 -1
+        este D-D/2 -1             
+        oeste 5
+    finejemplo     
+ 
+
+    ejemplo EJEMPLO3     # Ejemplo 3
+        cad = "3)El factorial de " + D +", " +D+"! =" + factorial
+        escribir cad
+        este D-D/2
+        sur D-D/2        
+                
+    finejemplo      
+    

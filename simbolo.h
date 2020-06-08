@@ -35,7 +35,7 @@ class Error
         string descripcion;
         string tipo;
         string id;
-        Error(int l, int c, string t, string i, string desc):linea(l), columna(c), tipo(t), descripcion(desc), id(i){}        
+        Error(int l, int c, string t, string i, string desc):linea(l), columna(c), tipo(t), descripcion(desc), id(i){linea = l; columna = c;}        
         string getMensaje()
         {
             return "Error " + tipo + " en línea "+ to_string(linea) + ":\t" +descripcion;
@@ -296,8 +296,23 @@ class TablaSimbolos
                 }           
                 else
                 {
-                    Error::registrarErrorSemantico(s->linea, s->columna, s->id,                         
-                        "La variable " +s->id+ " es de tipo " +tmp->tipo.getNombre()+", Error tratando de asignar un valor de tipo " +s->tipo.getNombre());                    
+                    //Otra posibilidad es que un entero se asigne a un real
+                    if(s->tipo.esNumerico() && tmp->tipo.esNumerico())
+                    {
+                        if(s->tipo.esReal() && tmp->tipo.esEntero())
+                        {
+                            tmp->valor_entero = s->valor_real;
+                        }
+                        else
+                        {
+                            tmp->valor_real = s->valor_entero;
+                        }
+                    }
+                    else
+                    {
+                        Error::registrarErrorSemantico(s->linea, s->columna, s->id,                         
+                            "La variable " +s->id+ " es de tipo " +tmp->tipo.getNombre()+", Error tratando de asignar un valor de tipo " +s->tipo.getNombre());                    
+                    }                    
                 } 
             }
             else
@@ -374,7 +389,7 @@ class Entorno
         }
         void escribir_fichero(string cadena)
         {
-        	//cout<<cadena<<endl;
+        	//cout<<<cadena<<endl;
             fichero << cadena;            
         } 
 
@@ -1276,28 +1291,28 @@ class Escribir: public Instruccion
 
         void ejecutar(Entorno *e)override
         {
-            //cout<<expr->getTipo(e).getNombre()<<"\t";
+            //cout<<<expr->getTipo(e).getNombre()<<"\t";
             Type type = expr->getTipo(e);
             switch (type.tipo)
             {
                 case TIPOLOGICO:
-                    cout<< expr->getValor(e).getCadenaLogico()<<endl;
+                    //cout<<< expr->getValor(e).getCadenaLogico()<<endl;
                     mostrar_en_pantalla(expr->getValor(e).getCadenaLogico(),e);
                     break;                
                 case TIPOENTERO:
-                    cout<< expr->getValor(e).valor_entero<<endl;
+                    //cout<<< expr->getValor(e).valor_entero<<endl;
                     mostrar_en_pantalla(to_string(expr->getValor(e).valor_entero),e);
                     break;        
                 case TIPOREAL:
-                    cout<< expr->getValor(e).valor_real<<endl;
+                    //cout<<< expr->getValor(e).valor_real<<endl;
                     mostrar_en_pantalla(to_string(expr->getValor(e).valor_real),e);
                     break;        
                 case TIPOCADENA:
-                    cout<< expr->getValor(e).valor_cadena<<endl;
+                    //cout<<< expr->getValor(e).valor_cadena<<endl;
                     mostrar_en_pantalla(expr->getValor(e).valor_cadena,e);
                     break;        
                 case TIPOPOSICION:
-                    cout<< "y:" <<expr->getValor(e).valor_posicion[0] <<", x:"<< expr->getValor(e).valor_posicion[1]<<endl;
+                    //cout<<< "y:" <<expr->getValor(e).valor_posicion[0] <<", x:"<< expr->getValor(e).valor_posicion[1]<<endl;
                     mostrar_en_pantalla("y:"+to_string(expr->getValor(e).valor_posicion[0])+", x:" + to_string(expr->getValor(e).valor_posicion[1]),e);
                     break;    
                 case TIPOERROR:
@@ -1416,7 +1431,7 @@ class Bloque: public Instruccion
         void ejecutar(Entorno *e)override
         {
 
-            //cout<<"Hay "<< instrucciones.size() <<" instrucciones"<<endl;
+            //cout<<<"Hay "<< instrucciones.size() <<" instrucciones"<<endl;
             for (unsigned i=0; i<instrucciones.size(); i++)
             {
                 instrucciones.at(i)->ejecutar(e);
@@ -1571,7 +1586,7 @@ class Obstaculo_movimiento: public Instruccion
                 int y = posicion_obstaculo->valor_posicion[0];
                 int x = posicion_obstaculo->valor_posicion[1];
                 int maximo = e->tabla.obtenerSimboloLocal("TAMANO_TABLERO_INIT", linea)->valor_entero;
-                //cout<< "Aplicando movimiento "<< movimiento <<endl;
+                //cout<<< "Aplicando movimiento "<< movimiento <<endl;
                 if(movimiento=="este")
                 {
                     if(( x + valorMovimiento) < maximo)
@@ -1663,7 +1678,7 @@ class PonerObstaculo: public Instruccion
                         	//int estado_casilla = e->tablero[y_posicion * limite + x_posicion];
                         	int *ptr = e->tablero;
                         	int estado_casilla = *&ptr[y_posicion * limite + x_posicion];
-                        	//cout<<"Tipo casilla "<<estado_casilla<<endl;
+                        	//cout<<<"Tipo casilla "<<estado_casilla<<endl;
                         	if(estado_casilla==CASILLA_VACIA)
                         	{
                                 string mensaje = "\tentornoPonerObstaculo(" + to_string(y_posicion) + ", " +to_string(x_posicion) + ");\n";
@@ -1704,7 +1719,7 @@ class PonerObstaculo: public Instruccion
                         if(x_posicion >= 0 && x_posicion < limite)
                         {
                         	int estado_casilla = e->tablero[y_posicion * limite + x_posicion];
-                        	//cout<<"Tipo casilla "<<estado_casilla<<endl;
+                        	//cout<<<"Tipo casilla "<<estado_casilla<<endl;
                         	if(estado_casilla==CASILLA_VACIA)
                         	{
                                 simbolo *posicion_obstaculo = e->tabla.obtenerSimboloLocal("POSICION_RELATIVA_OBSTACULO", linea);
@@ -2039,7 +2054,7 @@ class Movimiento_jugador: public Instruccion
         }
         void ejecutar(Entorno *e)override
         {
-        	//cout<<"Moviendo al jugador"<<endl;
+        	//cout<<<"Moviendo al jugador"<<endl;
             simbolo valor = expr->getValor(e);
             if(valor.tipo.esNumerico())
             {
@@ -2056,12 +2071,12 @@ class Movimiento_jugador: public Instruccion
 					int x = posicion_obstaculo->valor_posicion[1];
 					int maximo = e->tabla.obtenerSimboloLocal("TAMANO_TABLERO_INIT", linea)->valor_entero;
 					float pausa = e->tabla.obtenerSimboloLocal("PAUSA_TABLERO", linea)->valor_real;
-					//cout<< "Aplicando movimiento "<< movimiento <<endl;
+					//cout<<< "Aplicando movimiento "<< movimiento <<endl;
 					if(movimiento=="este")
 					{
                         for(int i = 1; i <= valorMovimiento ; i++)
                         {
-                            if(( x + i) < maximo)
+                            if(( x + valorMovimiento) < maximo)
                             {
                                 if(e->tablero[y*maximo + (x+i)] == CASILLA_VACIA || e->tablero[y*maximo + (x+i)] == CASILLA_ENTRADA)
                                 {                                    
@@ -2098,7 +2113,8 @@ class Movimiento_jugador: public Instruccion
                             else
                             {
                                 Error::registrarErrorSemantico(linea, columna," " ,
-                                "Error: Instruccion "+movimiento + ": El valor debe ser menor al tamaño máximo del tablero." + to_string(x+i) +" > " + to_string(maximo));
+                                "Error: Instruccion "+movimiento + " " + to_string(valorMovimiento)+  ": El valor queda fuera del trablero. ");
+                                break;
                             }
                         }
 					}
@@ -2107,7 +2123,7 @@ class Movimiento_jugador: public Instruccion
 					{
                         for(int i = 1; i <= valorMovimiento; i++)
                         {                        
-                            if(( x - i) >= 0)
+                            if(( x - valorMovimiento) >= 0)
                             {
                                 if(e->tablero[y*maximo + (x-i)] == CASILLA_VACIA || e->tablero[y*maximo + (x-i)] == CASILLA_ENTRADA)
                                 {
@@ -2144,7 +2160,8 @@ class Movimiento_jugador: public Instruccion
                             else
                             {
                                 Error::registrarErrorSemantico(linea, columna," " ,
-                                "Error: Instruccion "+movimiento + ": El valor debe ser mayor a 0 (< "+ to_string(y-i)+")");
+                                "Error: Instruccion "+movimiento + " " + to_string(valorMovimiento)+  ": El valor queda fuera del trablero. ");
+                                break;
                             }
                         }
 					}
@@ -2153,7 +2170,7 @@ class Movimiento_jugador: public Instruccion
 					{
                         for(int i = 1; i <= valorMovimiento; i++)
                         {
-                            if(( y - i) >= 0)
+                            if(( y - valorMovimiento) >= 0)
                             {
                                 if(e->tablero[(y - i)*maximo + x] == CASILLA_VACIA || e->tablero[(y - i)*maximo + x] == CASILLA_ENTRADA)
                                 {
@@ -2193,7 +2210,8 @@ class Movimiento_jugador: public Instruccion
                             else
                             {
                                 Error::registrarErrorSemantico(linea, columna," " ,
-                                "Error: Instruccion "+movimiento + ": El valor debe ser mayor a 0 (< "+ to_string(y-i)+")");
+                                "Error: Instruccion "+movimiento + " " + to_string(valorMovimiento)+  ": El valor queda fuera del trablero. ");
+                                break;
                             }
                         }
 					}
@@ -2202,7 +2220,7 @@ class Movimiento_jugador: public Instruccion
 					{
                         for(int i = 1; i<= valorMovimiento ; i++)
                         {                        
-                            if(( y + i) < maximo)
+                            if(( y + valorMovimiento) < maximo)
                             {
 
                                 if(e->tablero[(y + i)*maximo + x] == CASILLA_VACIA || e->tablero[(y + i)*maximo + x] == CASILLA_ENTRADA)
@@ -2241,7 +2259,8 @@ class Movimiento_jugador: public Instruccion
                             else
                             {
                                 Error::registrarErrorSemantico(linea, columna," " ,
-                                "Error: Instruccion "+movimiento + ": El valor debe ser menor al tamaño máximo del tablero. "  + to_string(x+i) +" > " + to_string(maximo));
+                                "Error: Instruccion "+movimiento + " " + to_string(valorMovimiento)+  ": El valor queda fuera del trablero. ");
+                                break;
                             }
                         }
 					}

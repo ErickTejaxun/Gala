@@ -16,6 +16,7 @@ extern int yylex();
 extern FILE* yyin;
 extern FILE* yyout;
 NodoAST *raiz;
+extern int yylineno;
 
 vector<Error> listaErrores;
 Entorno global = new Entorno(NULL);
@@ -326,6 +327,7 @@ void crear_fichero(string path);
 int main(int argc, char *argv[])
 {
       n_lineas = 1;
+      yylineno = 1;
       if (argc != 2) 
       {
             printf("Ejecutar de la forma %s fichero_entrada \n",argv[0]);            
@@ -361,6 +363,7 @@ int main(int argc, char *argv[])
             }
             cout<<"--------------------------Tabla de símbolos------------------------------------------"<<endl;
             cout<<global.tabla.getCadenaData()<<endl;
+            cout<<"--------------------------------------------------------------------------------------"<<endl;
             /*Ahora imprimimos todos los errores*/
             for(auto e: listaErrores)
             {
